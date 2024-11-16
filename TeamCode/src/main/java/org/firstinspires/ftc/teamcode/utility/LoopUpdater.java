@@ -14,12 +14,12 @@ import java.util.ArrayList;
 
 public class LoopUpdater {
     private FtcDashboard dashboard;
-    private SmartGamepad smartGamepad;
     private ArrayList<Action> activeActions = new ArrayList<Action>();
     private ArrayList<PeriodicUpdatingEntity> updatingEntities = new ArrayList<PeriodicUpdatingEntity>();
     public static LoopUpdater LoopUpdaterInstance = null;
     public LoopUpdater(){
         dashboard = FtcDashboard.getInstance();
+        LoopUpdaterInstance = this;
     }
     public static LoopUpdater getSharedLoopUpdater() throws RuntimeException{
         if(LoopUpdaterInstance==null){
@@ -35,6 +35,12 @@ public class LoopUpdater {
         if(!activeActions.contains(action)){
             activeActions.add(action);
         }
+    }
+    public void clearActions(){
+        activeActions.clear();
+    }
+    public ArrayList<Action> getActiveActions(){
+        return activeActions;
     }
     public void updateAndRunAll(){
         TelemetryPacket packet = new TelemetryPacket();

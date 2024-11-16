@@ -1,42 +1,61 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class RotatingSlide {
     public Arm arm = null;
+    public SampleRoller sampleRoller = null;
     public DualMotorSlide slide = null;
 
     //Preset slide lengths in inches, need to be fine-tuned.
+    //CHAMBER
     public static int SLIDE_CHAMBER_PREP = 1000;
-    public static int SLIDE_CHAMBER_PLACE = 6000;
-    public static int SLIDE_BASKET = 1000;
-    public static int SLIDE_HANG_PREP = 1000;
-    public static int SLIDE_INTAKE = 1000;
-    public static int SLIDE_STARTING = 0;
-
-
     public static int ARM_CHAMBER_PREP = 1000; //in ticks
+    public static int SLIDE_CHAMBER_PLACE = 6000;
     public static int ARM_CHAMBER_PLACE = 600; //in ticks
+
+    //BASKET
+    public static int SLIDE_BASKET = 1000;
     public static int ARM_BASKET = 1000; //ticks
+
+    //HANG
+    public static int SLIDE_HANG_PREP = 1000;
     public static int ARM_HANG_PREP = 800; //TODO: find actual pos w/ robot
+
+    //INTAKE + IDLE
+    public static int SLIDE_INTAKE = 1000;
     public static int ARM_INTAKE = 0; //in ticks
-    public static int ARM_STARTING = 0;
+    public static int ARM_AFTER_INTAKE = 100;
+    public static int SLIDE_RETRACT = 0;
     public static int ARM_VERTICAL_POS = 900;
+    public static int ARM_RETRACT = ARM_VERTICAL_POS;
+
+
 
     public RotatingSlide(){
         arm = new Arm();
         slide = new DualMotorSlide();
+        sampleRoller = new SampleRoller();
     }
 
+    /*
+    used after the intake is done
+    sequential actions: raise slide slightly, retract slides all the way
+     */
+    public Action intakeSample(){
+        return new SequentialAction(
+                sampleRoller.getStartRollerAction(SampleRoller.INTAKE_POWER, false),
+                arm.getArmToPosition(ARM_AFTER_INTAKE, false),
+                slide.getSlideToPosition(SLIDE_RETRACT, false)
+        );
+    }
+
+    /*
+    used after
+     */
+
+    //Actually bad, keep the number of usages to zero please
     public Action rotSlideToPosition(int slidePos, int armPos) {
         int slideTargetPosition = slidePos;
         int armTargetPosition = armPos;
@@ -51,7 +70,7 @@ public class RotatingSlide {
         */
         //We assume the safest option as the default
         Action action = new SequentialAction(
-                slide.getSlideToPosition(SLIDE_STARTING, true),
+                slide.getSlideToPosition(SLIDE_RETRACT, true),
                 arm.getArmToPosition(armTargetPosition, false),
                 slide.getSlideToPosition(slideTargetPosition, true)
             );

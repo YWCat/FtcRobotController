@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.TankDrive;
+import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 
 public final class SplineTest extends LinearOpMode {
@@ -32,8 +33,8 @@ public final class SplineTest extends LinearOpMode {
             Action driveToChamber = drive.actionBuilder(beginPose)
                     .lineToY(-23.5-8)
                     .build();
-            Action preChamber = arm.getArmToPosition(arm.chamberPrep, true);
-            Action lowerSlide = arm.getArmToPosition(arm.restartTicks, true);
+            Action preChamber = arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP, true);
+            Action lowerSlide = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
             //Action placeChamber = arm.getPlaceChamber();
             waitForStart();
             Actions.runBlocking(

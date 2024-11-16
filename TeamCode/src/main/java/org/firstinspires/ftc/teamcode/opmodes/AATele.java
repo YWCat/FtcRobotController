@@ -13,14 +13,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
+import org.firstinspires.ftc.teamcode.subsystems.SampleRoller;
 import org.firstinspires.ftc.teamcode.utility.LoopUpdater;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 import org.firstinspires.ftc.teamcode.utility.SmartGamepad;
-
-import java.util.ArrayList;
 
 @TeleOp
 @Config
@@ -38,14 +36,13 @@ public class AATele extends LinearOpMode{
     private SmartGamepad smartGamepad1 = null;
     private SmartGamepad smartGamepad2 = null;
 
-    private ArrayList<Action> activeActions = new ArrayList<Action>();
 
 
     @Override
     public void runOpMode() {
+        RobotCore robotCore  = new RobotCore(this);
         LoopUpdater loopUpdater = new LoopUpdater(); //I'm not sure if I'm doing it right
         RotatingSlide rotatingSlide = new RotatingSlide();
-        RobotCore robotCore  = new RobotCore(this);
         smartGamepad1 = new SmartGamepad(gamepad1);
         smartGamepad2 = new SmartGamepad(gamepad2);
 
@@ -103,19 +100,30 @@ public class AATele extends LinearOpMode{
             }
 
             if (smartGamepad1.a_pressed()){
-                Action armToChamber = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP,false));
+                Action armToChamber = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP,false);
                 Action toChamber = new SequentialAction(/* retract slide, */armToChamber /*, extend slide*/);
                 loopUpdater.addAction(toChamber);
-                Log.i("UpdateActions", "Actions Active: " + activeActions.size());
+                Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
             }
             if (smartGamepad1.b_pressed()){
-                Action armToIntake = rotatingSlide.rotSlideToPosition(RotatingSlide.ARM_INTAKE, RotatingSlide.SLIDE_CHAMBER_PLACE);
+                Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE, false);
                 Action toIntake = new SequentialAction(/* retract slide, */armToIntake /*, extend slide*/);
                 loopUpdater.addAction(toIntake);
-                Log.i("UpdateActions", "Actions Active: " + activeActions.size());
+                Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
+            }
+            if(smartGamepad1.x_pressed()){
+                Action intakeSample = rotatingSlide.intakeSample();
+                loopUpdater.addAction(intakeSample);
+            }
+            if(smartGamepad1.y_pressed()){
+                Action rollIntake = rotatingSlide.sampleRoller.getStartRollerAction(SampleRoller.INTAKE_POWER, false);
+                loopUpdater.addAction(rollIntake);
             }
 
-
+            if(smartGamepad1.right_trigger_pressed()){
+                loopUpdater.clearActions();
+                //TODO: stop the motions of each action
+            }
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
@@ -129,7 +137,7 @@ public class AATele extends LinearOpMode{
             //telemetry.addData("Status", "Run Time: " + runtime.toString());
             //telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             //telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("# Active Actions: ", activeActions.size() );
+            telemetry.addData("# Active Actions: ", loopUpdater.getActiveActions().size());
             telemetry.update();
             loopUpdater.updateAndRunAll();
 
