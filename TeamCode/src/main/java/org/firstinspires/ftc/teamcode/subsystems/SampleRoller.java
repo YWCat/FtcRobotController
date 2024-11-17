@@ -20,7 +20,7 @@ public class SampleRoller {
 
     public SampleRoller(){
         RobotCore robotCore = RobotCore.getRobotCore();
-        intakeServo = robotCore.hardwareMap.crservo.get(RobotConfig.claw);
+        intakeServo = robotCore.hardwareMap.crservo.get(RobotConfig.sampleServo);
     }
 
     public final class startRoller implements Action {

@@ -12,7 +12,11 @@ public class RobotConfig {
     public static final String armMotor = "motor"; //port 1
     public static final String slideMotorL = "slideL"; //Not yet implemented
     public static final String slideMotorR = "slideR"; //Not yet implemented
-    public static final String claw = "armServo"; //subject to change
+    public static final String sampleServo = "armServo"; //port 5
+    public static final String specimenServo = "specimenServo"; //port 4
+    public static final String wrist = "wrist"; 
+
+
 
     public SmartGamepad smartGamepad1;
     public SmartGamepad smartGamepad2;

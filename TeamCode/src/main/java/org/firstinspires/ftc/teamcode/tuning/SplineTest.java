@@ -22,7 +22,7 @@ public final class SplineTest extends LinearOpMode {
     private Servo claw = null;
     @Override
     public void runOpMode() throws InterruptedException {
-        claw = hardwareMap.get(Servo.class, RobotConfig.claw);
+        claw = hardwareMap.get(Servo.class, RobotConfig.sampleServo);
         Arm arm = new Arm();
         //telemetry.addData("Motor Value", armMotor.getCurrentPosition());
 

@@ -29,8 +29,6 @@ public class AATele extends LinearOpMode{
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotorEx armMotor = null;
-    private Servo claw = null;
 
     //TODO: replace this with smartGamepad
     private SmartGamepad smartGamepad1 = null;

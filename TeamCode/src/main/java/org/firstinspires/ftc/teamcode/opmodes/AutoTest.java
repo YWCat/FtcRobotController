@@ -23,7 +23,7 @@ public final class AutoTest extends LinearOpMode {
     private Servo claw = null;
     @Override
     public void runOpMode() throws InterruptedException {
-        claw = hardwareMap.get(Servo.class, RobotConfig.claw);
+        claw = hardwareMap.get(Servo.class, RobotConfig.sampleServo);
         Arm arm = new Arm();
         RotatingSlide rotatingSlide = new RotatingSlide();
         //telemetry.addData("Motor Value", armMotor.getCurrentPosition());
