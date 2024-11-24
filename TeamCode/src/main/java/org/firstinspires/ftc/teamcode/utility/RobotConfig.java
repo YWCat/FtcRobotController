@@ -14,7 +14,8 @@ public class RobotConfig {
     public static final String slideMotorR = "slideR"; //Not yet implemented
     public static final String sampleServo = "armServo"; //port 5
     public static final String specimenServo = "specimenServo"; //port 4
-    public static final String wrist = "wrist"; 
+    public static final String wrist = "servo0";
+    public static final String distanceSensor = "distSample";
 
 
 

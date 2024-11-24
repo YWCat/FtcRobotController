@@ -54,6 +54,7 @@ public class DualMotorSlide {
     }
 
     public final class slideToPosition implements Action {
+        private boolean cancelled;
         private long startTime;
         private int targetPosition; //ticks
         private boolean runStarted;
@@ -65,6 +66,7 @@ public class DualMotorSlide {
         public void changeTarget(int pos){
             targetPosition = pos;
             runStarted = false;
+            cancelled = false;
         }
         public boolean run(@NonNull TelemetryPacket p){
             if(!runStarted){
@@ -79,7 +81,7 @@ public class DualMotorSlide {
                 return true;
             }
             else{
-                if(slideMotorL.isBusy() && System.currentTimeMillis()-startTime < timeout) {
+                if(slideMotorL.isBusy() && System.currentTimeMillis()-startTime < timeout && !cancelled) {
                     Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
                     return true;
                 } else {
@@ -95,6 +97,13 @@ public class DualMotorSlide {
                     return false;
                 }
             }
+        }
+        public void cancel(){
+            slideMotorL.setVelocity(0.0);
+            slideMotorR.setVelocity(0.0);
+            slideMotorL.setPower(SLIDE_HOLD_POWER);
+            slideMotorR.setPower(SLIDE_HOLD_POWER);
+            cancelled = true;
         }
     }
     public slideToPosition getSlideToPosition(int pos, boolean forceNew){

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
@@ -16,9 +17,9 @@ public class Arm {
     public static armToPosition prevMoveArmAction = null;
     private static final double TICKS_PER_REV = -1; //
     private static final int TARGET_TOLERANCE = 100; //units: ticks
-    private static double UP_VELOCITY = 1000; // x inches per 1 second // highly doubtful
+    private static final double UP_VELOCITY = 1000; // x inches per 1 second // highly doubtful
 
-    private double upPower = 1;
+    private static final double HOLD_POWER = 0;
 
     /*
     Refers to the arm that rotates the slides :)
@@ -33,6 +34,7 @@ public class Arm {
     }
     public final class armToPosition implements Action {
         private long startTime;
+        private boolean cancelled;
         private int targetPosition;
         private boolean runStarted;
         private long timeout = 10000;
@@ -43,6 +45,7 @@ public class Arm {
         public void changeTarget(int pos){
             targetPosition = pos;
             runStarted = false;
+            cancelled = false;
         }
         public boolean run(@NonNull TelemetryPacket p){
             if(!runStarted){
@@ -54,7 +57,7 @@ public class Arm {
                 return true;
             }
             else{
-                if(armMotor.isBusy() && System.currentTimeMillis()-startTime < timeout) {
+                if(armMotor.isBusy() && System.currentTimeMillis()-startTime < timeout && !cancelled) {
                     Log.i("armMotor RobotActions", "motor pos: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
                     return true;
                 } else {
@@ -63,9 +66,18 @@ public class Arm {
                     } else{
                         Log.i("armMotor RobotActions", "timeout; position: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
                     }
+                    armMotor.setVelocity(0);
+                    armMotor.setPower(HOLD_POWER);
                     return false;
                 }
             }
+        }
+
+        public void cancel(){
+            armMotor.setVelocity(0);
+            armMotor.setPower(HOLD_POWER);
+            cancelled = true;
+            Log.i("armMotor RobotActions", "arm movement cancelled: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
         }
     }
 

@@ -5,7 +5,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 
 public class RotatingSlide {
     public Arm arm = null;
-    public SampleRoller sampleRoller = null;
+    public SampleIntake sampleIntake = null;
     public DualMotorSlide slide = null;
 
     //Preset slide lengths in inches, need to be fine-tuned.
@@ -36,24 +36,32 @@ public class RotatingSlide {
     public RotatingSlide(){
         arm = new Arm();
         slide = new DualMotorSlide();
-        sampleRoller = new SampleRoller();
+        sampleIntake = new SampleIntake();
     }
 
     /*
     used after the intake is done
-    sequential actions: raise slide slightly, retract slides all the way
+    sequential actions: wait for intake roller to finish, raise slide slightly, retract slides all the way
      */
     public Action intakeSample(){
         return new SequentialAction(
-                sampleRoller.getStartRollerAction(SampleRoller.INTAKE_POWER, false),
+                sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER, false),
                 arm.getArmToPosition(ARM_AFTER_INTAKE, false),
                 slide.getSlideToPosition(SLIDE_RETRACT, false)
         );
     }
 
     /*
-    used after
+    used when player begins outtake sequence on basket
+    sequential actions: raise slide to vertical, extend slide, flip outtake arm
      */
+    public Action outtakeSample(){
+        return new SequentialAction(
+                arm.getArmToPosition(ARM_BASKET, false),
+                slide.getSlideToPosition(SLIDE_BASKET, false),
+                sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER*-1, false)
+        );
+    }
 
     //Actually bad, keep the number of usages to zero please
     public Action rotSlideToPosition(int slidePos, int armPos) {

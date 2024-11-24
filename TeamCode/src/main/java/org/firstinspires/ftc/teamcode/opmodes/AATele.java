@@ -9,12 +9,11 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
-import org.firstinspires.ftc.teamcode.subsystems.SampleRoller;
+import org.firstinspires.ftc.teamcode.subsystems.SampleIntake;
+import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
 import org.firstinspires.ftc.teamcode.utility.LoopUpdater;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
@@ -33,7 +32,7 @@ public class AATele extends LinearOpMode{
     //TODO: replace this with smartGamepad
     private SmartGamepad smartGamepad1 = null;
     private SmartGamepad smartGamepad2 = null;
-
+    private boolean specimenIsOpen = false;
 
 
     @Override
@@ -41,6 +40,8 @@ public class AATele extends LinearOpMode{
         RobotCore robotCore  = new RobotCore(this);
         LoopUpdater loopUpdater = new LoopUpdater(); //I'm not sure if I'm doing it right
         RotatingSlide rotatingSlide = new RotatingSlide();
+        SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
+
         smartGamepad1 = new SmartGamepad(gamepad1);
         smartGamepad2 = new SmartGamepad(gamepad2);
 
@@ -109,14 +110,29 @@ public class AATele extends LinearOpMode{
                 loopUpdater.addAction(toIntake);
                 Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
             }
-            if(smartGamepad1.x_pressed()){
+            if(smartGamepad1.x_pressed()){ //intake prep
                 Action intakeSample = rotatingSlide.intakeSample();
                 loopUpdater.addAction(intakeSample);
             }
-            if(smartGamepad1.y_pressed()){
-                Action rollIntake = rotatingSlide.sampleRoller.getStartRollerAction(SampleRoller.INTAKE_POWER, false);
+            if(smartGamepad1.left_bumper_pressed()){ //start rollers INTAKE
+                Action rollIntake = rotatingSlide.sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER, false);
                 loopUpdater.addAction(rollIntake);
             }
+            if (smartGamepad1.right_bumper_pressed()){ //outtake
+                Action rollOuttake = rotatingSlide.sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER*-1, false);
+                loopUpdater.addAction(rollOuttake);
+            }
+            if(smartGamepad1.right_trigger_pressed()){
+                if(specimenIsOpen){ //close specimen
+                    Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, false);
+                    loopUpdater.addAction(closeSpecimen);
+                } else{
+                    Action openSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
+                    loopUpdater.addAction(openSpecimen);
+                }
+            }
+
+
 
             if(smartGamepad1.right_trigger_pressed()){
                 loopUpdater.clearActions();

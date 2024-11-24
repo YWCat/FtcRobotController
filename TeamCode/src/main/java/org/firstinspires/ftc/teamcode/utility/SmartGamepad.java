@@ -62,6 +62,13 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
     public boolean y_pressed() {
         return y && !previous.y;
     }
+
+    public boolean left_bumper_pressed(){
+        return left_bumper && !previous.left_bumper;
+    }
+    public boolean right_bumper_pressed(){
+        return right_bumper && !previous.right_bumper;
+    }
     public boolean dpad_changed() {
         //Log.v("gamepad", String.format("Dpad (up/down/left/right): %b,%b,%b,%b, previous: %b,%b,%b,%b", dpad_up, dpad_down, dpad_left, dpad_right,
         //        previous.dpad_up, previous.dpad_down, previous.dpad_left, previous.dpad_right));
