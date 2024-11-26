@@ -49,7 +49,7 @@ public class DualMotorSlide {
         slideMotorR.setTargetPositionTolerance(TARGET_TOLERANCE);
 
         /*Reverse the motors if necessary*/
-        //slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
+        slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         //slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
@@ -64,6 +64,7 @@ public class DualMotorSlide {
             Log.i(" Slide RobotActions", "Created new action");
         }
         public void changeTarget(int pos){
+            Log.i("slideMotor RobotActions", "move slide action modified, target pos" + pos);
             targetPosition = pos;
             runStarted = false;
             cancelled = false;

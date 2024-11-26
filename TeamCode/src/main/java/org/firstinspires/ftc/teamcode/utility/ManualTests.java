@@ -33,7 +33,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -64,8 +66,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+@TeleOp(name="Manual Control", group="Linear OpMode")
+public class ManualTests extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -75,8 +77,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor slideMotorL = null;
     private DcMotor slideMotorR = null;
+    private DcMotor armMotor = null;
     private CRServo intakeServo;
     private Servo specimenServo;
+    private Servo wrist;
 
     @Override
     public void runOpMode() {
@@ -94,7 +98,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         slideMotorL = hardwareMap.get(DcMotor.class, RobotConfig.slideMotorL);
         slideMotorR = hardwareMap.get(DcMotor.class, RobotConfig.slideMotorR);
+        slideMotorR.setDirection(DcMotor.Direction.REVERSE);
 
+        armMotor = hardwareMap.get(DcMotor.class, RobotConfig.armMotor);
+
+        wrist = hardwareMap.get(Servo.class, RobotConfig.wrist);
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -174,10 +182,19 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             if(gamepad1.dpad_up){
                 slideMotorL.setPower(0.5);
                 slideMotorR.setPower(0.5);
-            }
-            if(gamepad1.dpad_down){
+            } else if(gamepad1.dpad_down){
                 slideMotorL.setPower(-0.5);
                 slideMotorR.setPower(-0.5);
+            } else{
+                slideMotorL.setPower(0.1);
+                slideMotorR.setPower(0.1);
+            }
+            if(gamepad1.dpad_left){
+                armMotor.setPower(0.3);
+            } else if (gamepad1.dpad_right){
+                armMotor.setPower(-0.3);
+            } else{
+                armMotor.setPower(0);
             }
             if(gamepad1.right_trigger > 0.5){
                 intakeServo.setPower(1);
@@ -186,10 +203,30 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 intakeServo.setPower(-1);
             }
             if(gamepad1.left_bumper){
-                specimenServo.setPosition(1);
+                specimenServo.setPosition(0.35); //open
             }
             if(gamepad1.right_bumper){
-                specimenServo.setPosition(0);
+                specimenServo.setPosition(0.65); // close
+            }
+            if(gamepad1.right_stick_button){
+                slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
+                slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
+            if(gamepad1.a){
+                wrist.setPosition(0.8); //hold
+            } if(gamepad1.b){
+                wrist.setPosition(0.67); //intake
+            } if(gamepad1.x){
+                wrist.setPosition(0.9);//outtake
+            } if (gamepad1.y){
+                wrist.setPosition(0.1); //base?
             }
 
 
@@ -197,6 +234,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Slides Position", "left: "  + slideMotorL.getCurrentPosition() + " right: " + slideMotorR.getCurrentPosition());
+            telemetry.addData("worm position", ""+ armMotor.getCurrentPosition());
             telemetry.update();
         }
     }}

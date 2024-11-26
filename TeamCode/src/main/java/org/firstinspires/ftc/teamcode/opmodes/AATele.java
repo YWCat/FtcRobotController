@@ -5,12 +5,15 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.subsystems.DualMotorSlide;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
 import org.firstinspires.ftc.teamcode.subsystems.SampleIntake;
 import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
@@ -41,6 +44,7 @@ public class AATele extends LinearOpMode{
         LoopUpdater loopUpdater = new LoopUpdater(); //I'm not sure if I'm doing it right
         RotatingSlide rotatingSlide = new RotatingSlide();
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
+        SampleIntake sampleIntake = new SampleIntake();
 
         smartGamepad1 = new SmartGamepad(gamepad1);
         smartGamepad2 = new SmartGamepad(gamepad2);
@@ -98,31 +102,47 @@ public class AATele extends LinearOpMode{
                 rightBackPower  /= max;
             }
 
-            if (smartGamepad1.a_pressed()){
+            if (smartGamepad1.x_pressed()){ // go to chamber
                 Action armToChamber = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP,false);
+                Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+                Action extendSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP, false);
                 Action toChamber = new SequentialAction(/* retract slide, */armToChamber /*, extend slide*/);
                 loopUpdater.addAction(toChamber);
                 Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
             }
-            if (smartGamepad1.b_pressed()){
+            if (smartGamepad1.b_pressed()){ // put everything in position to intake
                 Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE, false);
-                Action toIntake = new SequentialAction(/* retract slide, */armToIntake /*, extend slide*/);
+                Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+                Action extendSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_INTAKE, true);
+                Action openClaw = sampleIntake.getStartRollerAction(false, false); //comment this out when switching to rollers
+                Action turnWrist = sampleIntake.getTurnWristAction(SampleIntake.WRIST_INTAKE, false);
+                Action toIntake = new ParallelAction(openClaw, turnWrist, new SequentialAction(retractSlide, armToIntake, extendSlide));
+                loopUpdater.addAction(toIntake);
+                Log.i("UpdateActions", "Intake prep added;  Actions Active: " +  loopUpdater.getActiveActions().size());
+            }
+            if(smartGamepad1.y_pressed()){ //basket outtake prep
+                Action armToBasket = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_BASKET,false);
+                Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+                Action extendSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET, true);
+                Action closeClaw = sampleIntake.getStartRollerAction(true, false);
+                Action turnWrist = sampleIntake.getTurnWristAction(SampleIntake.WRIST_OUTTAKE, false);
+                Action toIntake = new ParallelAction(turnWrist, new SequentialAction(/* retract slide, */armToBasket /*, extend slide*/));
                 loopUpdater.addAction(toIntake);
                 Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
             }
-            if(smartGamepad1.x_pressed()){ //intake prep
-                Action intakeSample = rotatingSlide.intakeSample();
-                loopUpdater.addAction(intakeSample);
+            if(smartGamepad1.left_bumper_pressed()){ //start rollers INTAKE or pick up and go
+                Action rollIntake = sampleIntake.getStartRollerAction(true, false);
+                Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntake.WRIST_IDLE, false);
+                Action intakeAndLeave = new SequentialAction(rollIntake, turnWristDown);
+                loopUpdater.addAction(intakeAndLeave);
             }
-            if(smartGamepad1.left_bumper_pressed()){ //start rollers INTAKE
-                Action rollIntake = rotatingSlide.sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER, false);
-                loopUpdater.addAction(rollIntake);
+            if (smartGamepad1.right_bumper_pressed()){ //outtake + drop and go
+                Action rollOuttake = sampleIntake.getStartRollerAction(false, false);
+                Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntake.WRIST_IDLE, false);
+                Action outtakeAndLeave = new SequentialAction(rollOuttake, turnWristDown);
+                loopUpdater.addAction(outtakeAndLeave);
             }
-            if (smartGamepad1.right_bumper_pressed()){ //outtake
-                Action rollOuttake = rotatingSlide.sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER*-1, false);
-                loopUpdater.addAction(rollOuttake);
-            }
-            if(smartGamepad1.right_trigger_pressed()){
+            if(smartGamepad1.left_trigger_pressed()){
                 if(specimenIsOpen){ //close specimen
                     Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, false);
                     loopUpdater.addAction(closeSpecimen);
@@ -130,6 +150,26 @@ public class AATele extends LinearOpMode{
                     Action openSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
                     loopUpdater.addAction(openSpecimen);
                 }
+            }
+
+            if(gamepad2.dpad_up){
+                Log.v("AAtele slide", "slide up detected");
+                Action moveSlide = rotatingSlide.slide.getSlideToPosition(rotatingSlide.slide.getMotorLPosition() + 50, false);
+                loopUpdater.addAction(moveSlide);
+            } else if(gamepad2.dpad_down){
+                Log.v("AAtele slide", "slide down detected");
+                Action moveSlide = rotatingSlide.slide.getSlideToPosition(rotatingSlide.slide.getMotorLPosition() - 50, false);
+                loopUpdater.addAction(moveSlide);
+            }
+
+            if(gamepad2.dpad_right){
+                Log.v("AAtele arm", "arm down detected");
+                Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() + 50, false);
+                loopUpdater.addAction(moveArm);
+            } else if(gamepad2.dpad_left){
+                Log.v("AAtele arm", "arm up detected");
+                Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() - 50, false);
+                loopUpdater.addAction(moveArm);
             }
 
 
@@ -151,6 +191,8 @@ public class AATele extends LinearOpMode{
             //telemetry.addData("Status", "Run Time: " + runtime.toString());
             //telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             //telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Slides Position", "left: "  + rotatingSlide.slide.getMotorLPosition());
+            telemetry.addData("worm position", ""+ rotatingSlide.arm.getMotorPosition());
             telemetry.addData("# Active Actions: ", loopUpdater.getActiveActions().size());
             telemetry.update();
             loopUpdater.updateAndRunAll();

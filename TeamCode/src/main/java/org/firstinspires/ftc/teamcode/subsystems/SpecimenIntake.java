@@ -16,8 +16,8 @@ public class SpecimenIntake {
 
     Servo specimenServo;
     public static moveSpecimenIntake prevMoveSpecimen = null;
-    public static final double OPEN = 0;
-    public static final double CLOSE = 1;
+    public static final double OPEN = 0.35;
+    public static final double CLOSE = 0.65;
     public SpecimenIntake(){
         RobotCore robotCore = RobotCore.getRobotCore();
         specimenServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.specimenServo);
