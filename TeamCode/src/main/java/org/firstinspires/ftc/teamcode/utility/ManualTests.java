@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.robot.Robot;
@@ -75,8 +76,8 @@ public class ManualTests extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor slideMotorL = null;
-    private DcMotor slideMotorR = null;
+    private DcMotorEx slideMotorL = null;
+    private DcMotorEx slideMotorR = null;
     private DcMotor armMotor = null;
     private CRServo intakeServo;
     private Servo specimenServo;
@@ -96,8 +97,10 @@ public class ManualTests extends LinearOpMode {
         intakeServo = hardwareMap.crservo.get(RobotConfig.sampleServo);
         specimenServo = hardwareMap.get(Servo.class, RobotConfig.specimenServo);
 
-        slideMotorL = hardwareMap.get(DcMotor.class, RobotConfig.slideMotorL);
-        slideMotorR = hardwareMap.get(DcMotor.class, RobotConfig.slideMotorR);
+        slideMotorL = hardwareMap.get(DcMotorEx.class, RobotConfig.slideMotorL);
+        slideMotorR = hardwareMap.get(DcMotorEx.class, RobotConfig.slideMotorR);
+        slideMotorL.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        slideMotorR.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         slideMotorR.setDirection(DcMotor.Direction.REVERSE);
 
         armMotor = hardwareMap.get(DcMotor.class, RobotConfig.armMotor);
@@ -178,14 +181,33 @@ public class ManualTests extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-
+            double factor = 0.982;
             if(gamepad1.dpad_up){
+                //slideMotorL.setTargetPosition(2300);
+                //slideMotorL.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                slideMotorL.setVelocity(2000);
+
+                //slideMotorR.setTargetPosition(2300);
+                //slideMotorR.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                slideMotorR.setVelocity(2000 * factor);
+
+                /*
+
                 slideMotorL.setPower(0.5);
                 slideMotorR.setPower(0.5);
+                 */
             } else if(gamepad1.dpad_down){
-                slideMotorL.setPower(-0.5);
-                slideMotorR.setPower(-0.5);
+                //slideMotorL.setTargetPosition(0);
+                //slideMotorL.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                slideMotorL.setVelocity(-2000);
+
+                //slideMotorR.setTargetPosition(0);
+                //slideMotorR.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                slideMotorR.setVelocity(-2000*factor);
+
             } else{
+                slideMotorL.setVelocity(0);
+                slideMotorR.setVelocity(0);
                 slideMotorL.setPower(0.1);
                 slideMotorR.setPower(0.1);
             }
@@ -197,10 +219,10 @@ public class ManualTests extends LinearOpMode {
                 armMotor.setPower(0);
             }
             if(gamepad1.right_trigger > 0.5){
-                intakeServo.setPower(1);
+                wrist.setPosition(wrist.getPosition()+0.0025);
             }
             if(gamepad1.left_trigger > 0.5){
-                intakeServo.setPower(-1);
+                wrist.setPosition(wrist.getPosition()-0.0025);
             }
             if(gamepad1.left_bumper){
                 specimenServo.setPosition(0.35); //open
@@ -230,12 +252,15 @@ public class ManualTests extends LinearOpMode {
             }
 
 
+
+
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Slides Position", "left: "  + slideMotorL.getCurrentPosition() + " right: " + slideMotorR.getCurrentPosition());
             telemetry.addData("worm position", ""+ armMotor.getCurrentPosition());
+            telemetry.addData("intake position:", "%4.2f", wrist.getPosition());
             telemetry.update();
         }
     }}

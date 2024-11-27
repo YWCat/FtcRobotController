@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -21,21 +22,33 @@ public class SampleIntake {
     Servo wristServo;
     public static startRoller startRollerAction = null;
     public static turnWrist turnWristAction = null;
-    public static final double INTAKE_POWER = -1;
-    public static final double OUTTAKE_POWER = 1;
+    public static final double INTAKE_POS_CLAW = -1;
+    public static final double OUTTAKE_POS_CLAW = 1;
+    public static final double INTAKE_POWER_ROLLER = -1;
+    public static final double OUTTAKE_POWER_ROLLER = 1;
 
+    public enum Mode {
+        ROLLER, CLAW
+    }
+    Mode mode = Mode.ROLLER;
 
     public static final double distanceThreshold = 2; //in inches
-    public static final double WRIST_INTAKE = 0.67;
-    public static final double WRIST_OUTTAKE = 0.1;
-    public static final double WRIST_IDLE = 0.8;
+    public static final double WRIST_INTAKE_CLAW = 0.67;
+    public static final double WRIST_OUTTAKE_CLAW = 0.1;
+    public static final double WRIST_INTAKE_ROLLER = 0.7;
+    public static final double WRIST_OUTTAKE_ROLLER = 0.2;
+    public static final double WRIST_IDLE_ROLLER = 0.9;
 
     public SampleIntake(){
         RobotCore robotCore = RobotCore.getRobotCore();
         intakeServo = robotCore.hardwareMap.crservo.get(RobotConfig.sampleServo);
         distSensor = robotCore.hardwareMap.get(DistanceSensor.class, RobotConfig.distanceSensor);
         wristServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.wrist); //0.5 is intake, 0.9 is outtake, base pos = 1.0, hold pos = 0.8
-
+        intakeServo.setPower(0);
+        wristServo.setPosition(WRIST_IDLE_ROLLER);
+    }
+    public double getWristPosition(){
+        return wristServo.getPosition();
     }
 
     public final class startRoller implements Action {
@@ -51,20 +64,31 @@ public class SampleIntake {
             Log.i(" Arm RobotActions", "Created new action startRoller");
         }
         public void changeTarget(boolean intake){
-            //servoPower = Math.abs(servoPower);
-            intakeServo.setPower(0);
-            direction = DcMotorSimple.Direction.FORWARD;
-            if(intake){
+            if(mode == Mode.CLAW){
+                intakeServo.setPower(0);
                 direction = DcMotorSimple.Direction.FORWARD;
-                servoPower = INTAKE_POWER;
-                isIntake = true;
-            } else{
-                //direction = DcMotorSimple.Direction.REVERSE;
-                servoPower = OUTTAKE_POWER;
-                isIntake = false;
+                if(intake){
+                    direction = DcMotorSimple.Direction.FORWARD;
+                    servoPower = INTAKE_POS_CLAW;
+                    isIntake = true;
+                } else{
+                    servoPower = OUTTAKE_POS_CLAW;
+                    isIntake = false;
+                }
+            } else {
+                //intakeServo.setPower(0);
+                direction = DcMotorSimple.Direction.FORWARD;
+                if(intake){
+                    servoPower = INTAKE_POWER_ROLLER;
+                    isIntake = true;
+                } else{
+                    servoPower = OUTTAKE_POWER_ROLLER;
+                    isIntake = false;
+                }
             }
             runStarted = false;
             cancelled = false;
+
         }
 
         public boolean run (@NonNull TelemetryPacket p){
@@ -78,16 +102,18 @@ public class SampleIntake {
             else{
                 Log.i("intakeServo RobotActions", "is cancelled?"  + cancelled);
                 if(System.currentTimeMillis()-startTime < timeout && !cancelled) { //not timed out or forced to stop
-                    if(isIntake && distSensor.getDistance(DistanceUnit.INCH)<distanceThreshold){
+                    if(mode == Mode.ROLLER && isIntake && distSensor.getDistance(DistanceUnit.INCH)<distanceThreshold){
                         Log.i("intakeServo RobotActions", "detected a sample");
-                        //intakeServo.setPower(0);
+                        intakeServo.setPower(0);
                         return false;
                     }
                     Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return true;
                 } else {
                     Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
-                    //intakeServo.setPower(0);
+                    if(mode == Mode.ROLLER){
+                        intakeServo.setPower(0);
+                    }
                     return false;
                 }
             }
@@ -114,6 +140,11 @@ public class SampleIntake {
             wristPos = position;
             runStarted = false;
             cancelled = false;
+            if(mode == Mode.ROLLER){
+                timeout = 100000;
+            } else{
+                timeout = 100;
+            }
         }
 
         public boolean run (@NonNull TelemetryPacket p){
@@ -166,6 +197,25 @@ public class SampleIntake {
         }
     }
 
+    public Action getPrepIOAction(boolean intake, boolean forceNew){
+        double wristPos = WRIST_IDLE_ROLLER;
+
+        if(mode == Mode.CLAW){
+            if(intake){
+                wristPos = WRIST_OUTTAKE_CLAW;
+            } else{
+                wristPos = WRIST_INTAKE_CLAW;
+            }
+            return new ParallelAction(getTurnWristAction(wristPos, forceNew), getStartRollerAction(intake, forceNew));
+        } else{
+            if(intake){
+                wristPos = WRIST_INTAKE_ROLLER;
+            } else{
+                wristPos = WRIST_OUTTAKE_ROLLER;
+            }
+            return new ParallelAction(getTurnWristAction(wristPos, forceNew));
+        }
+    }
 
 
 }

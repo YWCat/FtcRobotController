@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.util.Log;
+
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
 
@@ -9,14 +11,15 @@ public class RotatingSlide {
 
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
-    public static final int SLIDE_CHAMBER_PREP = 1000;
-    public static final int ARM_CHAMBER_PREP = 1000; //in ticks
-    public static final int SLIDE_CHAMBER_PLACE = 6000;
-    public static final int ARM_CHAMBER_PLACE = 600; //in ticks
+    public static final int SLIDE_CHAMBER_PREP = 2160;
+    public static final int ARM_CHAMBER_PREP = 0; //in ticks
+    public static final int SLIDE_CHAMBER_PLACE = 1650;
+    public static final int SLIDE_PICK_UP_SPECIMEN = 800;
+    public static final int ARM_CHAMBER_PLACE = 0; //in ticks
 
     //BASKET
-    public static final int SLIDE_BASKET = 1000;
-    public static final int ARM_BASKET = 1000; //ticks
+    public static final int SLIDE_BASKET = 3600;
+    public static final int ARM_BASKET = -280; //ticks
 
     //HANG
     public static final int SLIDE_HANG_PREP = 1000;
@@ -24,7 +27,7 @@ public class RotatingSlide {
 
     //INTAKE + IDLE
     public static final int SLIDE_INTAKE = 1300;
-    public static final int ARM_INTAKE = 2586; //in ticks
+    public static final int ARM_INTAKE = 2722; //in ticks
     public static final int ARM_AFTER_INTAKE = 2675;
     public static final int SLIDE_RETRACT = 0;
     public static final int ARM_VERTICAL_POS = 0;
@@ -42,14 +45,15 @@ public class RotatingSlide {
     used after the intake is done
     sequential actions: wait for intake roller to finish, raise slide slightly, retract slides all the way
      */
-    /*
-    public Action intakeSample(){
+    public Action prepIntake(){
+        Action armToIntake = arm.getArmToPosition(RotatingSlide.ARM_INTAKE, false);
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+        Action extendSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_INTAKE, true);
+        Action toIntake = new SequentialAction(retractSlide, armToIntake, extendSlide/**/);
         return new SequentialAction(
-                sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER, false),
-                arm.getArmToPosition(ARM_AFTER_INTAKE, false),
-                slide.getSlideToPosition(SLIDE_RETRACT, false)
+
         );
-    }*/
+    }
 
     /*
     used when player begins outtake sequence on basket
@@ -64,45 +68,37 @@ public class RotatingSlide {
         );
     }*/
 
-    //Actually bad, keep the number of usages to zero please
+    /*
+    Retracts the slide to 0 and makes the arm vertical
+     */
+    public Action retractSlide(){
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+        Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT,false);
+        Action retract = new SequentialAction(retractSlide, retractArm);
+        Log.i("UpdateActions", "Added retract action");
+        return retract;
+    }
+    //lets you customize if you want one thing to not move
+    public Action retractSlide(boolean moveSlide, boolean moveArm){
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, false);
+        Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT,false);
+        if(!moveSlide){
+            retractSlide = slide.getSlideToPosition(slide.getLeftEncoder(), false);
+        }
+        if(!moveArm){
+            retractArm = arm.getArmToPosition(arm.getMotorPosition(),false);
+        }
+        Action retract = new SequentialAction(retractSlide, retractArm);
+        Log.i("UpdateActions", "Added retract action, moveSlide:" + moveSlide + " moveArm: " + moveArm);
+        return retract;
+    }
 
-    public Action rotSlideToPosition(int slidePos, int armPos) {
-        int slideTargetPosition = slidePos;
-        int armTargetPosition = armPos;
-
-        int slideStartPosition = slide.getMotorLPosition();
-        int armStartPosition = arm.getMotorPosition();
-
-        /*
-        If moving up and retracting, rotate arm and retract simultaneously
-        If moving up and extending, rotate arm, then extend (no need to retract)
-        If moving down regardless, retract, rotate, then adjust length
-        */
-        //We assume the safest option as the default
-        Action action = new SequentialAction(
-                slide.getSlideToPosition(SLIDE_RETRACT, true),
-                arm.getArmToPosition(armTargetPosition, false),
-                slide.getSlideToPosition(slideTargetPosition, true)
-            );
-
-        /*
-        //TODO: make the slightly more optimized version bug-friendly
-        //There is no timeout within the entire action, so if one action fails
-
-        //If the arm goes up (closer to vertical), change the mode
-        if(Math.abs(armStartPosition - ARM_VERTICAL_POS) >  Math.abs(armTargetPosition - ARM_VERTICAL_POS)){
-            action = new SequentialAction(
-                    arm.getArmToPosition(armTargetPosition, false),
-                    slide.getSlideToPosition(slideTargetPosition, false));
-            //Determine if the slide is extending or retracting
-            if (slideStartPosition < slideTargetPosition) {
-                action = new ParallelAction(
-                        arm.getArmToPosition(armTargetPosition, false),
-                        slide.getSlideToPosition(slideTargetPosition, false));
-            }
-        }*/
-
-        return action;
+    public void update(){
+        if (arm.getMotorPosition() > 1000) {
+            slide.changeHoldPower(true);
+        } else{
+            slide.changeHoldPower(false);
+        }
     }
 
 }

@@ -90,8 +90,11 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
         return result;
     }
 
-    public boolean leftJoystickButton() {
+    public boolean left_stick_button_pressed() {
         return left_stick_button && !previous.left_stick_button;
+    }
+    public boolean right_stick_button_pressed(){
+        return right_stick_button && !previous.right_stick_button;
     }
 
 }

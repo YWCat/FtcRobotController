@@ -33,6 +33,11 @@ public class Arm {
         armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         armMotor.setTargetPositionTolerance(TARGET_TOLERANCE);
     }
+    public void resetEncoder(){
+        armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+    }
+
     public final class armToPosition implements Action {
         private long startTime;
         private boolean cancelled;
