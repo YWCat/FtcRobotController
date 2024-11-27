@@ -25,7 +25,7 @@ public class DualMotorSlide {
     public DcMotorEx slideMotorR;
     private static final double TICKS_PER_REV = 537.7; //5203-2402-0027, 223 RPM
     private static final double PULLEY_DIAMETER_IN = (32 / 24.5); //3407-0002-0112 // = 1.269685 inches
-    private final int TARGET_TOLERANCE_TICKS = (int) (0.3*TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI));
+    private final int TARGET_TOLERANCE_TICKS = (int) (0.45*TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI));
     private Telemetry telemetry;
     private boolean targetReached = true;
     public final double RIGHT_TO_LEFT_SYNC = 1;

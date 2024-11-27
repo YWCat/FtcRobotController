@@ -86,6 +86,11 @@ public class SampleIntake {
                     isIntake = false;
                 }
             }
+            if(mode == Mode.ROLLER){
+                timeout = 5000;
+            } else{
+                timeout = 100;
+            }
             runStarted = false;
             cancelled = false;
 
@@ -140,11 +145,7 @@ public class SampleIntake {
             wristPos = position;
             runStarted = false;
             cancelled = false;
-            if(mode == Mode.ROLLER){
-                timeout = 100000;
-            } else{
-                timeout = 100;
-            }
+
         }
 
         public boolean run (@NonNull TelemetryPacket p){
