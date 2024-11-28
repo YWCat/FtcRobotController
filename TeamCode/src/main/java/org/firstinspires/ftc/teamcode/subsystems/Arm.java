@@ -18,7 +18,7 @@ public class Arm {
     private static final double TICKS_PER_REV = -1; //
     private static final int TARGET_TOLERANCE = 70; //units: ticks
         //approx the height of a sample when doing intake
-    private static final double UP_VELOCITY = 1000; // x inches per 1 second // highly doubtful
+    private static final double UP_VELOCITY = 2500; // x inches per 1 second // highly doubtful
 
     private static final double HOLD_POWER = 0;
 

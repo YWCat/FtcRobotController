@@ -29,11 +29,14 @@ public class DualMotorSlide {
     private Telemetry telemetry;
     private boolean targetReached = true;
     public final double RIGHT_TO_LEFT_SYNC = 1;
-    private final int MAX_HT_TICKS = 3700;
+    private final int MAX_VERTICAL_HT_TICKS = 3850;
     private final int MIN_HT_TICKS = 0;//(int) (0TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI)); //dont get any lower than
     private final double FAST_POWER = 0.6;
     private final double SLOW_POWER = 0.3;
     private VoltageSensor batteryVoltageSensor;
+    public static int MAX_HORIZONTAL_LIMIT_TICKS = 1900;
+
+    public static int MAX_EXTENSION = MAX_HORIZONTAL_LIMIT_TICKS;
 
     public enum Mode {
         BOTH_MOTORS_PID,
@@ -61,6 +64,8 @@ public class DualMotorSlide {
     public static double MIN_HOLD_POWER_DOWN = -0.04;
     private double powerFromPIDF;
     public static slideToPosition prevMoveSlideAction = null;
+    public static boolean isHorizontal = true;
+
 
 
     //TODO: fine-tune LEVEL-HT values.
@@ -106,7 +111,7 @@ public class DualMotorSlide {
         } else if (power < 0 && power >= MIN_HOLD_POWER_DOWN) {
             return MIN_HOLD_POWER_DOWN ;
         }
-        if(slideMotorL.getCurrentPosition()>=MAX_HT_TICKS || slideMotorR.getCurrentPosition()>=MAX_HT_TICKS){
+        if(slideMotorL.getCurrentPosition()>= MAX_EXTENSION || slideMotorR.getCurrentPosition()>= MAX_EXTENSION){
             if (power > 0 ) {
                 return MIN_HOLD_POWER_UP;
             } else if (power < 0 ) {
@@ -148,7 +153,7 @@ public class DualMotorSlide {
     }
     //for going to non-junction heights
     public void goToHt(int ticks) {
-        ticks = Math.min(MAX_HT_TICKS, ticks);
+        ticks = Math.min(MAX_EXTENSION, ticks);
         targetReached=false;
         if(mode==Mode.RIGHT_FOLLOW_LEFT) {
             slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -180,19 +185,6 @@ public class DualMotorSlide {
         this.goToHt(targetPosTicks);
     }
 
-    public void applyStaticOffset(int direction, double power) {
-        if(mode == Mode.RIGHT_FOLLOW_LEFT) {
-            slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            slideMotorR.setPower(power*direction);
-        }
-        else{
-            slideMotorR.setPower(mapPower(power*direction));
-            slideMotorL.setPower(mapPower(power*direction) * getLeftFactor());
-            Log.v("SlideSync", "R power=" +mapPower(power*direction));
-            Log.v("SlideSync", "L power=" +mapPower(power*direction)* getLeftFactor());
-        }
-        //Log.v("PIDLift: status: ", "applyStaticOffset");
-    }
 
     public void adjustLift(double direction, boolean slow){
         targetReached=true;
@@ -205,10 +197,12 @@ public class DualMotorSlide {
             slideMotorR.setPower(power*direction);
         }
         else{
-            slideMotorL.setVelocity(UP_VELOCITY * direction);
-            slideMotorR.setVelocity(UP_VELOCITY * direction); //use velocity instead of power?
-            powerFromPIDF = power * direction;
-            powerFromPIDF = mapPower(powerFromPIDF);
+            if(getLeftEncoder() < MAX_EXTENSION || direction < 0){
+                slideMotorL.setVelocity(UP_VELOCITY * direction);
+                slideMotorR.setVelocity(UP_VELOCITY * direction);
+            }
+            //powerFromPIDF = power * direction;
+            //powerFromPIDF = mapPower(powerFromPIDF);
             //slideMotorR.setPower(powerFromPIDF);
             //slideMotorL.setPower(powerFromPIDF*getLeftFactor());
 
@@ -292,22 +286,30 @@ public class DualMotorSlide {
 
     public final class slideToPosition implements Action {
         private boolean cancelled;
+        private double powerCap = 1;
         private long startTime;
         private int targetPosition; //ticks
         private boolean runStarted;
         private long timeout = 10000;
 
-        public slideToPosition(int pos) {
-            changeTarget(pos);
+        public slideToPosition(int pos, double powerCap) {
+            changeTarget(pos, powerCap);
             Log.i(" Slidemotor RobotActions", "Created new action");
         }
 
-        public void changeTarget(int pos) {
+        public void changeTarget(int pos, double powerCap) {
             Log.i("slideMotor RobotActions", "move slide action modified, target pos" + pos);
             targetPosition = pos;
             runStarted = false;
             targetReached = false;
             cancelled = false;
+            this.powerCap = powerCap;
+            if(this.powerCap > 0){
+                this.powerCap = Math.min(this.powerCap, PID_RANGE);
+            } else {
+                this.powerCap = Math.max(this.powerCap, -1 *PID_RANGE);
+            }
+            pidfController.setOutputBounds(-1.0*this.powerCap, 1.0*this.powerCap);
         }
 
         public boolean run(@NonNull TelemetryPacket p) {
@@ -389,23 +391,39 @@ public class DualMotorSlide {
             cancelled = true;
         }
     }
-    public slideToPosition getSlideToPosition(int pos, boolean forceNew){
+    public slideToPosition getSlideToPosition(int posTicks, double powerCap, boolean forceNew){
         if(!forceNew){
             if(prevMoveSlideAction == null){
-                prevMoveSlideAction = new slideToPosition(pos);
+                prevMoveSlideAction = new slideToPosition(posTicks, powerCap);
             } else {
-                prevMoveSlideAction.changeTarget(pos);
+                prevMoveSlideAction.changeTarget(posTicks, powerCap);
             }
             return prevMoveSlideAction;
         } else{
-            return new slideToPosition(pos);
+            return new slideToPosition(posTicks, powerCap);
         }
     }
-    public void changeHoldPower(boolean horizontal){
+    public slideToPosition getSlideToPosition(double posInches,  double powerCap, boolean forceNew){
+        if(!forceNew){
+            if(prevMoveSlideAction == null){
+                prevMoveSlideAction = new slideToPosition(inchToTicks(posInches), 1);
+            } else {
+                prevMoveSlideAction.changeTarget(inchToTicks(posInches), 1);
+            }
+            return prevMoveSlideAction;
+        } else{
+            return new slideToPosition(inchToTicks(posInches), 1);
+        }
+    }
+    public void changeHorizontalSetting(boolean horizontal){
         MIN_HOLD_POWER_UP = MIN_HOLD_POWER_UP_VERTICAL;
+        isHorizontal = horizontal;
+        MAX_EXTENSION = MAX_VERTICAL_HT_TICKS;
         if(horizontal) {
             MIN_HOLD_POWER_UP = MIN_HOLD_POWER_UP_HORIZONTAL;
+            MAX_EXTENSION = MAX_HORIZONTAL_LIMIT_TICKS;
         }
+        Log.v("horizontalLimit", "is horizontal: " + horizontal+ " maxExtension = " + MAX_EXTENSION);
     }
 
 

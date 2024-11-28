@@ -35,7 +35,7 @@ public final class AutoTest extends LinearOpMode {
             Action driveToChamber = drive.actionBuilder(beginPose)
                     .lineToY(-23.5-8)
                     .build();
-            Action preChamber = arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP, true);
+            Action preChamber = arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP_TICKS, true);
             Action lowerSlide = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
             //Action placeChamber = arm.getPlaceChamber();
             waitForStart();

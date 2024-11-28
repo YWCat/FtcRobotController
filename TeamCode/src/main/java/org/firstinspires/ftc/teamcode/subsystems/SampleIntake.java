@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -15,29 +16,29 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
-
+@Config
 public class SampleIntake {
     CRServo intakeServo;
     DistanceSensor distSensor;
     Servo wristServo;
     public static startRoller startRollerAction = null;
     public static turnWrist turnWristAction = null;
-    public static final double INTAKE_POS_CLAW = -1;
-    public static final double OUTTAKE_POS_CLAW = 1;
-    public static final double INTAKE_POWER_ROLLER = -1;
-    public static final double OUTTAKE_POWER_ROLLER = 1;
+    public static  double INTAKE_POS_CLAW = -1;
+    public static  double OUTTAKE_POS_CLAW = 1;
+    public static  double INTAKE_POWER_ROLLER = -1;
+    public static  double OUTTAKE_POWER_ROLLER = 1;
 
     public enum Mode {
         ROLLER, CLAW
     }
     Mode mode = Mode.ROLLER;
 
-    public static final double distanceThreshold = 2; //in inches
-    public static final double WRIST_INTAKE_CLAW = 0.67;
-    public static final double WRIST_OUTTAKE_CLAW = 0.1;
-    public static final double WRIST_INTAKE_ROLLER = 0.7;
-    public static final double WRIST_OUTTAKE_ROLLER = 0.2;
-    public static final double WRIST_IDLE_ROLLER = 0.9;
+    public static  double distanceThreshold = 2; //in inches
+    public static  double WRIST_INTAKE_CLAW = 0.67;
+    public static  double WRIST_OUTTAKE_CLAW = 0.1;
+    public static  double WRIST_INTAKE_ROLLER = 0.88;
+    public static  double WRIST_OUTTAKE_ROLLER = 0.4;
+    public static  double WRIST_IDLE_ROLLER = 0.9;
 
     public SampleIntake(){
         RobotCore robotCore = RobotCore.getRobotCore();
@@ -49,6 +50,10 @@ public class SampleIntake {
     }
     public double getWristPosition(){
         return wristServo.getPosition();
+    }
+
+    public void manualMoveRoller(double power){
+        intakeServo.setPower(power);
     }
 
     public final class startRoller implements Action {
@@ -87,7 +92,10 @@ public class SampleIntake {
                 }
             }
             if(mode == Mode.ROLLER){
-                timeout = 5000;
+                if(!intake){
+                    timeout = 750;
+                }
+                timeout = 1000;
             } else{
                 timeout = 100;
             }
