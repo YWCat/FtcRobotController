@@ -406,13 +406,13 @@ public class DualMotorSlide {
     public slideToPosition getSlideToPosition(double posInches,  double powerCap, boolean forceNew){
         if(!forceNew){
             if(prevMoveSlideAction == null){
-                prevMoveSlideAction = new slideToPosition(inchToTicks(posInches), 1);
+                prevMoveSlideAction = new slideToPosition(inchToTicks(posInches), powerCap);
             } else {
-                prevMoveSlideAction.changeTarget(inchToTicks(posInches), 1);
+                prevMoveSlideAction.changeTarget(inchToTicks(posInches), powerCap);
             }
             return prevMoveSlideAction;
         } else{
-            return new slideToPosition(inchToTicks(posInches), 1);
+            return new slideToPosition(inchToTicks(posInches), powerCap);
         }
     }
     public void changeHorizontalSetting(boolean horizontal){

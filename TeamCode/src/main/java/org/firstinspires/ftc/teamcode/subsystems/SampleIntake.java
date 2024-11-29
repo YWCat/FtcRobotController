@@ -18,15 +18,17 @@ import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 @Config
 public class SampleIntake {
-    CRServo intakeServo;
+    CRServo  intakeServo;
     DistanceSensor distSensor;
     Servo wristServo;
+    public static startAndStopRoller startAndStopRollerAction = null;
     public static startRoller startRollerAction = null;
+    public static stopRoller stopRollerAction = null;
     public static turnWrist turnWristAction = null;
     public static  double INTAKE_POS_CLAW = -1;
     public static  double OUTTAKE_POS_CLAW = 1;
     public static  double INTAKE_POWER_ROLLER = -1;
-    public static  double OUTTAKE_POWER_ROLLER = 1;
+    public static  double OUTTAKE_POWER_ROLLER = 0.5;
 
     public enum Mode {
         ROLLER, CLAW
@@ -37,8 +39,10 @@ public class SampleIntake {
     public static  double WRIST_INTAKE_CLAW = 0.67;
     public static  double WRIST_OUTTAKE_CLAW = 0.1;
     public static  double WRIST_INTAKE_ROLLER = 0.88;
-    public static  double WRIST_OUTTAKE_ROLLER = 0.4;
+    public static  double WRIST_OUTTAKE_ROLLER = 0.07;
     public static  double WRIST_IDLE_ROLLER = 0.9;
+    public static  double WRIST_INIT_ROLLER = 0.0;
+    public static  double WRIST_INIT_CLAW = 0.0;
 
     public SampleIntake(){
         RobotCore robotCore = RobotCore.getRobotCore();
@@ -46,7 +50,8 @@ public class SampleIntake {
         distSensor = robotCore.hardwareMap.get(DistanceSensor.class, RobotConfig.distanceSensor);
         wristServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.wrist); //0.5 is intake, 0.9 is outtake, base pos = 1.0, hold pos = 0.8
         intakeServo.setPower(0);
-        wristServo.setPosition(WRIST_IDLE_ROLLER);
+        Log.v("intakeServo initialized", "power = " + 0);
+        wristServo.setPosition(WRIST_INIT_ROLLER);
     }
     public double getWristPosition(){
         return wristServo.getPosition();
@@ -54,23 +59,23 @@ public class SampleIntake {
 
     public void manualMoveRoller(double power){
         intakeServo.setPower(power);
+        Log.v("intakeServo manualMove", "power = " + power);
     }
 
-    public final class startRoller implements Action {
+    public final class startAndStopRoller implements Action {
         private boolean cancelled = false;
         private long startTime;
         private double servoPower; //
         private boolean isIntake;
         private boolean runStarted;
-        private long timeout = 1000; //in milliseconds
+        private long timeout = 2500; //in milliseconds
         private DcMotorSimple.Direction direction;
-        public startRoller(boolean intake){
+        public startAndStopRoller(boolean intake){
             changeTarget(intake);
-            Log.i(" Arm RobotActions", "Created new action startRoller");
+            Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(boolean intake){
             if(mode == Mode.CLAW){
-                intakeServo.setPower(0);
                 direction = DcMotorSimple.Direction.FORWARD;
                 if(intake){
                     direction = DcMotorSimple.Direction.FORWARD;
@@ -81,7 +86,6 @@ public class SampleIntake {
                     isIntake = false;
                 }
             } else {
-                //intakeServo.setPower(0);
                 direction = DcMotorSimple.Direction.FORWARD;
                 if(intake){
                     servoPower = INTAKE_POWER_ROLLER;
@@ -92,10 +96,7 @@ public class SampleIntake {
                 }
             }
             if(mode == Mode.ROLLER){
-                if(!intake){
-                    timeout = 750;
-                }
-                timeout = 1000;
+
             } else{
                 timeout = 100;
             }
@@ -107,34 +108,140 @@ public class SampleIntake {
         public boolean run (@NonNull TelemetryPacket p){
             if(!runStarted){
                 intakeServo.setPower(servoPower);
+                Log.i("intakeServo RobotActions", "set power: " + servoPower);
                 intakeServo.setDirection(direction);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
                 return true;
             }
             else{
-                Log.i("intakeServo RobotActions", "is cancelled?"  + cancelled);
+                //Log.i("intakeServo RobotActions", "is cancelled?"  + cancelled);
                 if(System.currentTimeMillis()-startTime < timeout && !cancelled) { //not timed out or forced to stop
                     if(mode == Mode.ROLLER && isIntake && distSensor.getDistance(DistanceUnit.INCH)<distanceThreshold){
-                        Log.i("intakeServo RobotActions", "detected a sample");
                         intakeServo.setPower(0);
+                        Log.i("intakeServo RobotActions", "detected a sample");
                         return false;
                     }
-                    Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    //Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return true;
                 } else {
                     Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     if(mode == Mode.ROLLER){
                         intakeServo.setPower(0);
+                        Log.i("intakeServo RobotActions power off", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     }
                     return false;
                 }
             }
         }
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
-            //intakeServo.setPower(0);
+            intakeServo.setPower(0);
             cancelled = true;
             Log.i("intakeServo RobotActions", "action cancelled");
+        }
+    }
+    public final class startRoller implements Action {
+        private boolean cancelled = false;
+        private long startTime;
+        private double servoPower; //
+        private boolean isIntake;
+        private boolean runStarted;
+        private long timeout = 1500; //in milliseconds
+        private DcMotorSimple.Direction direction;
+        public startRoller(boolean intake){
+            changeTarget(intake);
+            Log.i(" intakeServoStartRoller RobotActions", "Created new action startAndStopRoller");
+        }
+        public void changeTarget(boolean intake){
+            if(mode == Mode.CLAW){
+                direction = DcMotorSimple.Direction.FORWARD;
+                if(intake){
+                    direction = DcMotorSimple.Direction.FORWARD;
+                    servoPower = INTAKE_POS_CLAW;
+                    isIntake = true;
+                } else{
+                    servoPower = OUTTAKE_POS_CLAW;
+                    isIntake = false;
+                }
+            } else {
+                direction = DcMotorSimple.Direction.FORWARD;
+                if(intake){
+                    servoPower = INTAKE_POWER_ROLLER;
+                    isIntake = true;
+                } else{
+                    servoPower = OUTTAKE_POWER_ROLLER;
+                    isIntake = false;
+                }
+            }
+            if(mode == Mode.ROLLER){
+
+            } else{
+                timeout = 100;
+            }
+            runStarted = false;
+            cancelled = false;
+
+        }
+
+        public boolean run (@NonNull TelemetryPacket p){
+                intakeServo.setPower(servoPower);
+                Log.i("intakeServoStartRoller RobotActions", "set power: " + servoPower);
+                intakeServo.setDirection(direction);
+                startTime = System.currentTimeMillis();
+                runStarted = true;
+                return false;
+
+        }
+        public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
+            intakeServo.setPower(0);
+            cancelled = true;
+            Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+        }
+    }
+
+    public final class stopRoller implements Action {
+        private boolean cancelled = false;
+        private long startTime;
+        private double servoPower; //
+        private boolean isIntake;
+        private boolean runStarted;
+        private long timeout = 1500; //in milliseconds
+        private DcMotorSimple.Direction direction;
+        public stopRoller(){
+            changeTarget();
+            Log.i(" intakeServo StopRoller RobotActions", "Created new action startAndStopRoller");
+        }
+        public void changeTarget(){
+            if(mode == Mode.CLAW){
+                direction = DcMotorSimple.Direction.FORWARD;
+                servoPower = OUTTAKE_POS_CLAW;
+            } else {
+                direction = DcMotorSimple.Direction.FORWARD;
+                servoPower = 0;
+            }
+            if(mode == Mode.ROLLER){
+
+            } else{
+                timeout = 100;
+            }
+            runStarted = false;
+            cancelled = false;
+
+        }
+
+        public boolean run (@NonNull TelemetryPacket p){
+            intakeServo.setPower(servoPower);
+            Log.i("intakeServo StopRoller RobotActions", "set power: " + servoPower);
+            intakeServo.setDirection(direction);
+            startTime = System.currentTimeMillis();
+            runStarted = true;
+            return false;
+
+        }
+        public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
+            intakeServo.setPower(0);
+            cancelled = true;
+            Log.i("intakeServo StopRoller RobotActions", "action cancelled");
         }
     }
 
@@ -147,7 +254,7 @@ public class SampleIntake {
         private DcMotorSimple.Direction direction;
         public turnWrist(double position){
             changeTarget(position);
-            Log.i(" Arm RobotActions", "Created new action startRoller");
+            Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(double position){
             wristPos = position;
@@ -164,12 +271,12 @@ public class SampleIntake {
                 return true;
             }
             else{
-                Log.i("intakeServo RobotActions", "is cancelled?"  + cancelled);
+                Log.i("intakeWrist RobotActions", "is cancelled?"  + cancelled);
                 if(System.currentTimeMillis()-startTime < timeout && !cancelled) { //not timed out or forced to stop
-                    Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return true;
                 } else {
-                    Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return false;
                 }
             }
@@ -178,6 +285,18 @@ public class SampleIntake {
             intakeServo.setPower(0);
             cancelled = true;
             Log.i("intakeServo RobotActions", "action cancelled");
+        }
+    }
+    public startAndStopRoller getStartAndStopRollerAction(boolean intake, boolean forceNew){
+        if(!forceNew){
+            if(startAndStopRollerAction == null){
+                startAndStopRollerAction = new startAndStopRoller(intake);
+            } else {
+                startAndStopRollerAction.changeTarget(intake);
+            }
+            return startAndStopRollerAction;
+        } else{
+            return new startAndStopRoller(intake);
         }
     }
     public startRoller getStartRollerAction(boolean intake, boolean forceNew){
@@ -192,7 +311,18 @@ public class SampleIntake {
             return new startRoller(intake);
         }
     }
-
+    public stopRoller getStopRollerAction( boolean forceNew){
+        if(!forceNew){
+            if(stopRollerAction == null){
+                stopRollerAction = new stopRoller();
+            } else {
+                stopRollerAction.changeTarget();
+            }
+            return stopRollerAction;
+        } else{
+            return new stopRoller();
+        }
+    }
     public turnWrist getTurnWristAction(double position, boolean forceNew){
         if(!forceNew){
             if(turnWristAction == null){
@@ -215,7 +345,7 @@ public class SampleIntake {
             } else{
                 wristPos = WRIST_INTAKE_CLAW;
             }
-            return new ParallelAction(getTurnWristAction(wristPos, forceNew), getStartRollerAction(intake, forceNew));
+            return new ParallelAction(getTurnWristAction(wristPos, forceNew), getStartAndStopRollerAction(intake, forceNew));
         } else{
             if(intake){
                 wristPos = WRIST_INTAKE_ROLLER;

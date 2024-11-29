@@ -1,12 +1,20 @@
 package org.firstinspires.ftc.teamcode.utility;
 
 
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.teamcode.subsystems.SampleIntake;
 
 
 public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
     private LoopUpdater loopUpdater = null;
+    private waitForButton waitForButtonAction = null;
 
     private Gamepad original = null;  // reference to the original gamepad object from opmode
     private Gamepad previous = null;  // a copy of gamepad with previous state
@@ -89,12 +97,81 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
         }
         return result;
     }
+    public boolean left_trigger_released(){
+        return !(left_trigger>0.5) && previous.left_trigger>0.5;
+    }
+    public boolean right_trigger_released(){
+        return !(right_trigger>0.5) && previous.right_trigger>0.5;
+    }
 
     public boolean left_stick_button_pressed() {
         return left_stick_button && !previous.left_stick_button;
     }
     public boolean right_stick_button_pressed(){
         return right_stick_button && !previous.right_stick_button;
+    }
+
+    public class waitForButton implements Action {
+        String button = "";
+        boolean cancelled = false;
+        long timeout = 10000;
+
+        public waitForButton(String button){
+            changeSettings(button);
+            Log.i(" smartGamepad RobotActions", "Created new action waitForButton");
+        }
+        public void changeSettings(String button){
+            this.button = button;;
+            cancelled = false;
+        }
+
+        public boolean run(@NonNull TelemetryPacket p){
+            if(!cancelled){
+                if(button.equals("left_stick_y_forward")){
+                    return !(left_stick_y > 0.3);
+                } else if (button.equals("left_trigger")){
+                    if(left_trigger_pressed()){
+                        Log.v("RobotActions WaitForButton", "left trig pressed");
+                    }
+                    return !left_trigger_pressed();
+                } else if (button.equals("right_trigger")){
+                    if(right_trigger_pressed()){
+                        Log.v("RobotActions WaitForButton", "right trig pressed");
+                    }
+                    return !right_trigger_pressed();
+                } else if(button.equals("a")){
+                    if(a_pressed()){
+                        Log.v("RobotActions WaitForButton", "a pressed");
+                    }
+                    return !a_pressed();
+                }
+
+                else{
+                    Log.e("RobotActions WaitForButton", "BUTTON NOT SUPPORTED");
+                    return false;
+                }
+            } else {
+                return false;
+            }
+
+        }
+        public void cancel(){
+            cancelled = true;
+            Log.i("intakeServo RobotActions", "action cancelled");
+        }
+    }
+
+    public waitForButton getWaitForButton(String button, boolean forceNew){
+        if(!forceNew){
+            if(waitForButtonAction == null){
+                waitForButtonAction = new waitForButton(button);
+            } else {
+                waitForButtonAction.changeSettings(button);
+            }
+            return waitForButtonAction;
+        } else{
+            return new waitForButton(button);
+        }
     }
 
 }

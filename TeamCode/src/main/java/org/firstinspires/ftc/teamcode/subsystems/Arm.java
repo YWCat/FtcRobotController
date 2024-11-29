@@ -37,6 +37,11 @@ public class Arm {
         armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
     }
+    public void stopMotor(){
+        //slideMotorL.setVelocity(0.0);
+        //slideMotorR.setVelocity(0.0);
+        armMotor.setPower(HOLD_POWER);
+    }
 
     public final class armToPosition implements Action {
         private long startTime;

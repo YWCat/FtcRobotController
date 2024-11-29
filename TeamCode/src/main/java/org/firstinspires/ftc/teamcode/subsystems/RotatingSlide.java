@@ -22,8 +22,7 @@ public class RotatingSlide {
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 
     //BASKET
-    public static final int SLIDE_BASKET_TICKS = 3600;
-    public static final double SLIDE_BASKET_IN = 27.47;
+    public static final double SLIDE_BASKET_IN = 29.0;
     public static  int ARM_BASKET_TICKS = -280; //ticks
 
     //HANG
@@ -32,8 +31,8 @@ public class RotatingSlide {
 
     //INTAKE + IDLE
     public static  int SLIDE_INTAKE_TICKS = 1300;
-    public static  int ARM_INTAKE_TICKS = 2652; //in ticks
-    public static  int ARM_AFTER_INTAKE = 2475;
+    public static  int ARM_INTAKE_TICKS = 2400; //in ticks
+    public static  int ARM_AFTER_INTAKE = 2200;
     public static  int SLIDE_RETRACT = 0;
     public static  int ARM_VERTICAL_POS = 0;
     public static  int ARM_RETRACT = ARM_VERTICAL_POS;
@@ -71,7 +70,7 @@ public class RotatingSlide {
         return new SequentialAction(
                 arm.getArmToPosition(ARM_BASKET_TICKS, false),
                 slide.getSlideToPosition(SLIDE_BASKET_TICKS, false),
-                sampleIntake.getStartRollerAction(SampleIntake.ROLLER_POWER*-1, false)
+                sampleIntake.getStartAndStopRollerAction(SampleIntake.ROLLER_POWER*-1, false)
         );
     }*/
 
@@ -105,6 +104,14 @@ public class RotatingSlide {
             slide.changeHorizontalSetting(true);
         } else{
             slide.changeHorizontalSetting(false);
+        }
+    }
+
+    public boolean isHorizontal(){
+        if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD) {
+            return true;
+        } else{
+            return false;
         }
     }
 
