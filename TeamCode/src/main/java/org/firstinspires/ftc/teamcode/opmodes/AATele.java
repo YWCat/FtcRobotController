@@ -127,14 +127,14 @@ public class AATele extends LinearOpMode{
 
             if(smartGamepad2.x_pressed()){ //retract slides and make arm vertical
                 loopUpdater.addAction(rotatingSlide.retractSlide());
-                Log.i("UpdateActions", "Added retract action; Actions Active: " +  loopUpdater.getActiveActions().size());
+                //Log.i("UpdateActions", "Added retract action; Actions Active: " +  loopUpdater.getActiveActions().size());
             } else if (smartGamepad2.b_pressed()){ // go to chamber
                 Action armToChamber = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP_TICKS,  false);
                 Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, false);
                 Action extendSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1, true);
                 Action toChamber = new SequentialAction(retractSlide, armToChamber, extendSlide);
                 loopUpdater.addAction(toChamber);
-                Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
+                //Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
             }
 
             if (smartGamepad2.a_pressed()){ // put everything in position to intake
@@ -150,8 +150,8 @@ public class AATele extends LinearOpMode{
 
                 //player 1 stuff
                 Action raiseArmAfterIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AFTER_INTAKE, true);
-                Action waitForRT1 = smartGamepad1.getWaitForButton("right_trigger", false);
-                Action waitForRT2 = smartGamepad1.getWaitForButton("right_trigger", true);
+                Action waitForRT1 = smartGamepad1.getWaitForButtons("right_trigger", false);
+                Action waitForRT2 = smartGamepad1.getWaitForButtons("right_trigger", true);
                 Action retractSlideAfterIntake = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
                 Action retractArmAfterIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
                 Action intakeSequence = new SequentialAction(waitForRT1, raiseArmAfterIntake, waitForRT2, retractSlideAfterIntake, retractArmAfterIntake);
@@ -174,7 +174,7 @@ public class AATele extends LinearOpMode{
                 Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS, false);
                 Action prepIntake = sampleIntake.getPrepIOAction(true, false);
                 Action rollerOn = sampleIntake.getStartAndStopRollerAction(false, false);
-                Action waitForA = smartGamepad1.getWaitForButton("a", false);
+                Action waitForA = smartGamepad1.getWaitForButtons("a", false);
                 Action rollerOff = sampleIntake.getStopRollerAction(false);
                 Action raiseArm1 = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AFTER_INTAKE, true);
                 Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1,  true);
@@ -201,7 +201,7 @@ public class AATele extends LinearOpMode{
             if (smartGamepad1.left_trigger_pressed() && !smartGamepad1.dpad_up){ //outtake + drop and go down
                 Action rollOuttake = sampleIntake.getStartAndStopRollerAction(false, false);
                 Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntake.WRIST_IDLE_ROLLER, false);
-                Action waitForLT = smartGamepad1.getWaitForButton("left_trigger", false);
+                Action waitForLT = smartGamepad1.getWaitForButtons("left_trigger", false);
                 Action outtakeAndLeave = new SequentialAction(rollOuttake, new ParallelAction(turnWristDown, new SleepAction(0), waitForLT), rotatingSlide.retractSlide());
                 loopUpdater.addAction(outtakeAndLeave);
             }
@@ -266,21 +266,17 @@ public class AATele extends LinearOpMode{
 
 
             if(gamepad2.dpad_up){
-                Log.v("AAtele slide", "slide up detected");
                 if(rotatingSlide.slide.getLeftEncoder() < DualMotorSlide.MAX_EXTENSION){
                     rotatingSlide.slide.adjustLift(1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)), false);
                 } else {
                     rotatingSlide.slide.stopMotor();
                 }
             }  if(gamepad2.dpad_down){
-                Log.v("AAtele slide", "slide down detected");
                 rotatingSlide.slide.adjustLift(-1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)), false);
             }  if(gamepad2.dpad_right){
-                Log.v("AAtele arm", "arm down detected");
                 Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() + (int) (250 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE))), false);
                 loopUpdater.addAction(moveArm);
             }  if(gamepad2.dpad_left){
-                Log.v("AAtele arm", "arm up detected");
                 Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() - (int) (250 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE))), false);
                 loopUpdater.addAction(moveArm);
             } if ((!gamepad2.dpad_down && !gamepad2.dpad_up) && rotatingSlide.slide.isLevelReached()){

@@ -250,6 +250,13 @@ public class ManualTests extends LinearOpMode {
             } if (gamepad1.y){
                 wrist.setPosition(0.1); //base?
             }
+            if(gamepad2.a){
+                intakeServo.setPower(1);
+            } else if(gamepad2.b){
+                intakeServo.setPower(-1);
+            }else{
+                intakeServo.setPower(0);
+            }
 
 
 

@@ -15,14 +15,13 @@ public class RotatingSlide {
     //CHAMBER
     public static final double SLIDE_CHAMBER_PREP_IN = 16.48;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final int SLIDE_CHAMBER_PLACE_TICKS = 1650;
     public static final double SLIDE_CHAMBER_PLACE_IN = 12.59;
     public static final int SLIDE_PICK_UP_SPECIMEN_TICKS = 800;
     public static final double SLIDE_PICK_UP_SPECIMEN_IN = 6.10;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 
     //BASKET
-    public static final double SLIDE_BASKET_IN = 29.0;
+    public static final double SLIDE_BASKET_IN = 29.5;
     public static  int ARM_BASKET_TICKS = -280; //ticks
 
     //HANG

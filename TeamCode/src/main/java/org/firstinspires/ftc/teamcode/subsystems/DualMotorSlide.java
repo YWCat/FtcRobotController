@@ -120,13 +120,18 @@ public class DualMotorSlide {
         }
         return power;
     }
-    public double getLeftFactor(){
+    public double getRightFactor(boolean up){
         double factor = 1.0;
         int rightEncoder = slideMotorR.getCurrentPosition();
         int leftEncoder = slideMotorL.getCurrentPosition();
-        if( rightEncoder!=0 && leftEncoder!=rightEncoder){
+        if( leftEncoder!=0 && leftEncoder!=rightEncoder){
             Log.v("SlideSync", "error exists: R="+rightEncoder + " L="+leftEncoder);
-            //factor = 1.0 + Math.abs((double)(rightEncoder - leftEncoder))/800;
+            double correction = (double)(leftEncoder - rightEncoder)/800;
+            if(up){
+                factor = factor + correction;
+            } else {
+                factor = factor - correction;
+            }
             /*
             * abs of (rightE - leftE) is around 20, with right being more when going up
             * and right less when going down
@@ -140,7 +145,7 @@ public class DualMotorSlide {
                 factor = 0.5;
             }
         }
-        Log.v("SlideSync", ""+factor);
+        Log.v("PIDLift SlideSync", ""+factor);
         return factor;
 
     }
@@ -204,7 +209,7 @@ public class DualMotorSlide {
             //powerFromPIDF = power * direction;
             //powerFromPIDF = mapPower(powerFromPIDF);
             //slideMotorR.setPower(powerFromPIDF);
-            //slideMotorL.setPower(powerFromPIDF*getLeftFactor());
+            //slideMotorL.setPower(powerFromPIDF*getRightFactor());
 
         }
     }
@@ -334,7 +339,7 @@ public class DualMotorSlide {
             } else {
                 if (mode == Mode.RIGHT_FOLLOW_LEFT) {
                     if (slideMotorL.isBusy() && System.currentTimeMillis() - startTime < timeout && !cancelled) {
-                        Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
+                        //Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
                         return true;
                     } else {
                         if (!slideMotorL.isBusy()) {
@@ -350,21 +355,20 @@ public class DualMotorSlide {
                     }
                 } else {
                     updateTargetReached();
-                    Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
+                    //Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
                     if(!isLevelReached() && System.currentTimeMillis() - startTime < timeout && !cancelled){
                         double measuredPositionL = ticksToInches(slideMotorL.getCurrentPosition());
                         double measuredPositionR = ticksToInches(slideMotorR.getCurrentPosition());
                         powerFromPIDF = pidfController.update(measuredPositionL);
                         //if you want to add a constant upward power pls adjust kS instead
-                        Log.v("PIDLift", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f",
-                                pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
+                        //Log.v("PIDLift", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
                         //telemetry.addData("Target pos", pidfController.getTargetPosition());
                         //telemetry.addData("Measure pos", measuredPosition);
                         //telemetry.addData("slidePower", powerFromPIDF);
                         //telemetry.update();
-                        powerFromPIDF = mapPower(powerFromPIDF);
-                        slideMotorL.setPower(powerFromPIDF*getLeftFactor());
-                        slideMotorR.setPower(powerFromPIDF);
+                        powerFromPIDF = mapPower(powerFromPIDF );
+                        slideMotorL.setPower(powerFromPIDF);
+                        slideMotorR.setPower(powerFromPIDF * getRightFactor(powerFromPIDF>0));
                         Log.v("PIDLift", "Actual power: left: " + slideMotorL.getPower() + "right: " + slideMotorR.getPower());
                         return true;
                     } else{
@@ -423,7 +427,7 @@ public class DualMotorSlide {
             MIN_HOLD_POWER_UP = MIN_HOLD_POWER_UP_HORIZONTAL;
             MAX_EXTENSION = MAX_HORIZONTAL_LIMIT_TICKS;
         }
-        Log.v("horizontalLimit", "is horizontal: " + horizontal+ " maxExtension = " + MAX_EXTENSION);
+        //Log.v("horizontalLimit", "is horizontal: " + horizontal+ " maxExtension = " + MAX_EXTENSION);
     }
 
 
