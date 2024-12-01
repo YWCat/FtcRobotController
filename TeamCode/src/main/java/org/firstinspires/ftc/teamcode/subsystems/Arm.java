@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.utility.RobotCore;
 public class Arm {
     DcMotorEx armMotor;
     public static armToPosition prevMoveArmAction = null;
-    private static final double TICKS_PER_REV = -1; //
+    private static final double TICKS_PER_REV = 384.5; //
     private static final int TARGET_TOLERANCE = 70; //units: ticks
         //approx the height of a sample when doing intake
     private static final double UP_VELOCITY = 2500; // x inches per 1 second // highly doubtful
@@ -107,5 +107,14 @@ public class Arm {
 
     public int getMotorPosition(){
         return armMotor.getCurrentPosition();
+    }
+
+
+    public double ticksToAngle(int ticks){
+        return ((double) ticks / TICKS_PER_REV / 28 * 360); //28 = worm gear gear ratio
+    } // 1 degree is around 30 ticks
+
+    public int angleToTicks(double angle){
+        return (int) (angle / 360 * 28 * TICKS_PER_REV); //28 = worm gear gear ratio
     }
 }

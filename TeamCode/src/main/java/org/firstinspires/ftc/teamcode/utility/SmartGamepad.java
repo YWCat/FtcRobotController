@@ -149,6 +149,16 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
                             //Log.v("RobotActions WaitForButton", "a pressed");
                         }
                         notAllPressed = notAllPressed ||  !a_pressed();
+                    } else if (button.equals("b")){
+                        if(b_pressed()){
+                            //Log.v("RobotActions WaitForButton", "b pressed");
+                        }
+                        notAllPressed = notAllPressed ||  !b_pressed();
+                    } else if (button.equals("x")){
+                        if(x_pressed()){
+                            //Log.v("RobotActions WaitForButton", "x pressed");
+                        }
+                        notAllPressed = notAllPressed ||  !x_pressed();
                     }
                     else{
                         //Log.e("RobotActions WaitForButton", "BUTTON NOT SUPPORTED");

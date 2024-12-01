@@ -34,7 +34,7 @@ public class DualMotorSlide {
     private final double FAST_POWER = 0.6;
     private final double SLOW_POWER = 0.3;
     private VoltageSensor batteryVoltageSensor;
-    public static int MAX_HORIZONTAL_LIMIT_TICKS = 1900;
+    public static int MAX_HORIZONTAL_LIMIT_TICKS = 2090;
 
     public static int MAX_EXTENSION = MAX_HORIZONTAL_LIMIT_TICKS;
 
@@ -51,19 +51,21 @@ public class DualMotorSlide {
     //0:5.0
 
     private PIDFController pidfController;
-    public static double kP = 0.25; //slow down at 2 inches from target
+    public static double kP = 0.25; //slow down at 2 inches from target, then halved.
     public static double kI = 0.0; //0.0000000001;
     public static double kD = 0.0;
     public static double kA = 0.0;
     public static double kV = 0.0;
     public static double kS = 0.002;
-    public static double PID_RANGE = 1;
+    public static double PID_RANGE = 0.8;
     public static double MIN_HOLD_POWER_UP = 0.002;
     public static double MIN_HOLD_POWER_UP_VERTICAL = 0.002;
     public static double MIN_HOLD_POWER_UP_HORIZONTAL = 0;
+    public static double MIN_HOLD_POWER_HANG = 0.5;
     public static double MIN_HOLD_POWER_DOWN = -0.04;
     private double powerFromPIDF;
     public static slideToPosition prevMoveSlideAction = null;
+    public static setMotorPower prevSetMotorAction = null;
     public static boolean isHorizontal = true;
 
 
@@ -125,8 +127,8 @@ public class DualMotorSlide {
         int rightEncoder = slideMotorR.getCurrentPosition();
         int leftEncoder = slideMotorL.getCurrentPosition();
         if( leftEncoder!=0 && leftEncoder!=rightEncoder){
-            Log.v("SlideSync", "error exists: R="+rightEncoder + " L="+leftEncoder);
-            double correction = (double)(leftEncoder - rightEncoder)/800;
+            Log.v("SlideSync pidLift", "error exists: R="+rightEncoder + " L="+leftEncoder);
+            double correction = (double)(leftEncoder - rightEncoder)*0.0076;
             if(up){
                 factor = factor + correction;
             } else {
@@ -251,12 +253,12 @@ public class DualMotorSlide {
 
     public int inchToTicks(double inches) {
         return (int) (inches * TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI));
-    }
+    } //1 inch is around 131 ticks (as of 11/30/24)
     public double ticksToInches(int ticks){
         return ((double) ticks) / (TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI));
     }
 
-    public double getPosition(){
+    public double getPosition(){ //gets position in inches
         return slideMotorR.getCurrentPosition() / (TICKS_PER_REV/(PULLEY_DIAMETER_IN * Math.PI));
     }
 
@@ -361,7 +363,7 @@ public class DualMotorSlide {
                         double measuredPositionR = ticksToInches(slideMotorR.getCurrentPosition());
                         powerFromPIDF = pidfController.update(measuredPositionL);
                         //if you want to add a constant upward power pls adjust kS instead
-                        //Log.v("PIDLift", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
+                        Log.v("PIDLift", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
                         //telemetry.addData("Target pos", pidfController.getTargetPosition());
                         //telemetry.addData("Measure pos", measuredPosition);
                         //telemetry.addData("slidePower", powerFromPIDF);
@@ -395,6 +397,39 @@ public class DualMotorSlide {
             cancelled = true;
         }
     }
+
+    public class setMotorPower implements Action {
+        private boolean cancelled;
+        private double power = 0;
+        private long startTime;
+        private boolean runStarted;
+        private long timeout = 10000;
+
+        public setMotorPower(double power) {
+            changeTarget(power);
+            Log.i(" Slidemotor RobotActions", "Created new action setMotorPower");
+        }
+
+        public void changeTarget( double power) {
+            Log.i("slideMotor RobotActions", "setMotorPower action modified, power = " + power);
+            runStarted = false;
+            cancelled = false;
+            this.power = power;
+            if(this.power > 0){
+                this.power = Math.min(this.power, PID_RANGE);
+            } else {
+                this.power = Math.max(this.power, -1 *PID_RANGE);
+            }
+            pidfController.setOutputBounds(-1.0*this.power, 1.0*this.power);
+        }
+
+        public boolean run(@NonNull TelemetryPacket packet){
+            slideMotorL.setPower(power);
+            slideMotorR.setPower(power);
+            return false;
+        }
+
+    }
     public slideToPosition getSlideToPosition(int posTicks, double powerCap, boolean forceNew){
         if(!forceNew){
             if(prevMoveSlideAction == null){
@@ -417,6 +452,18 @@ public class DualMotorSlide {
             return prevMoveSlideAction;
         } else{
             return new slideToPosition(inchToTicks(posInches), powerCap);
+        }
+    }
+    public setMotorPower getSetMotorPower(double power, boolean forceNew){
+        if(!forceNew){
+            if(prevSetMotorAction== null){
+                prevSetMotorAction = new setMotorPower(power);
+            } else {
+                prevSetMotorAction.changeTarget(power);
+            }
+            return prevSetMotorAction;
+        } else{
+            return new setMotorPower(power);
         }
     }
     public void changeHorizontalSetting(boolean horizontal){

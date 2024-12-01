@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+/*  //UNCOMMENT HERE
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -283,6 +284,7 @@ public final class MecanumDrive {
         If robot is near target (or has entered the region), sees the target, and haven't reached target, return the adjusted position
         If robot reached target (error within tolerance), return null
          */
+/*  //UNCOMMENT HERE
         public Pose2d adjustedPosUsingTarget(Pose2d current) {
 
             if (!hasEnteredNearRegion(current)) {
@@ -656,3 +658,4 @@ public final class MecanumDrive {
         );
     }
 }
+*/

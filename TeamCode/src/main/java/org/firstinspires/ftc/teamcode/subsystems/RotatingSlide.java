@@ -11,6 +11,8 @@ public class RotatingSlide {
     public Arm arm = null;
     public DualMotorSlide slide = null;
 
+    public static boolean IS_HANGING = false;
+
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
     public static final double SLIDE_CHAMBER_PREP_IN = 16.48;
@@ -25,8 +27,21 @@ public class RotatingSlide {
     public static  int ARM_BASKET_TICKS = -280; //ticks
 
     //HANG
-    public static  int SLIDE_HANG_PREP_TICKS = 1000;
-    public static  int ARM_HANG_PREP_TICKS = 800; //TODO: find actual pos w/ robot
+    public static  int SLIDE_HANG_PREP_TICKS = 1800;
+    public static  int ARM_HANG_PREP_TICKS = 820;
+    public static int ARM_HANG_LOW_TICKS = 2600;
+    public static double SLIDE_HANG_LOW_IN = 0.8;
+
+    public static int ARM_HANG_LOW_LOCK_TICKS = 2020;
+    public static double SLIDE_HANG_LOW_LOCK_IN = 0.0;
+    public static double SLIDE_HANG_HIGH_PREP_IN = 20.0;
+    public static int ARM_HANG_HIGH_PREP_TICKS = 2270;
+    public static int ARM_HANG_HIGH_SWING_TICKS = 300;
+    public static double SLIDE_HANG_HIGH_SWING_IN = 1.5;
+    public static int ARM_HANG_HIGH_LOCK_TICKS = -240;
+    public static double SLIDE_HANG_HIGH_LOCK_IN = -0.3;
+
+
 
     //INTAKE + IDLE
     public static  int SLIDE_INTAKE_TICKS = 1300;
@@ -36,7 +51,7 @@ public class RotatingSlide {
     public static  int ARM_VERTICAL_POS = 0;
     public static  int ARM_RETRACT = ARM_VERTICAL_POS;
 
-    public static int ARM_HORIZONTAL_THRESHOLD = 1100;
+    public static int ARM_HORIZONTAL_THRESHOLD = 1300;
 
 
 
@@ -44,6 +59,7 @@ public class RotatingSlide {
     public RotatingSlide(){
         arm = new Arm();
         slide = new DualMotorSlide();
+        IS_HANGING = false;
     }
 
     /*
@@ -99,7 +115,7 @@ public class RotatingSlide {
     }
 
     public void update(){
-        if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD) {
+        if (isHorizontal()) {
             slide.changeHorizontalSetting(true);
         } else{
             slide.changeHorizontalSetting(false);
@@ -107,11 +123,19 @@ public class RotatingSlide {
     }
 
     public boolean isHorizontal(){
-        if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD) {
+
+        Log.v("horizontalLimit rotatingSlide", "is horizontal: " + (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD) + "is hanging: " + IS_HANGING);
+        if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD && !IS_HANGING) {
             return true;
         } else{
             return false;
         }
     }
+
+    public void updateHangStatus(boolean isHanging){
+        IS_HANGING = isHanging;
+        Log.v("horizontalLimit2", "Update status " + isHanging);
+    }
+
 
 }
