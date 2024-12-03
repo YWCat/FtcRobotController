@@ -1,7 +1,4 @@
-package org.firstinspires.ftc.teamcode;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+package org.firstinspires.ftc.teamcode.opmodes;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
@@ -13,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @TeleOp(name="RedBasketTrajectory", group="Linear OpMode")
-public final class RedBasketTrajectory extends LinearOpMode {
+public final class RedBasket extends LinearOpMode {
     static int pos_multiplier = -1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
