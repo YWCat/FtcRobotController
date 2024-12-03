@@ -24,8 +24,8 @@ public class DualMotorSlide {
     public DcMotorEx slideMotorL;
     public DcMotorEx slideMotorR;
     private static final double TICKS_PER_REV = 537.7; //5203-2402-0027, 223 RPM
-    private static final double PULLEY_DIAMETER_IN = (32 / 24.5); //3407-0002-0112 // = 1.269685 inches
-    private final int TARGET_TOLERANCE_TICKS = (int) (0.45*TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI));
+    private static final double PULLEY_DIAMETER_IN = (32 / 25.4); //3407-0002-0112 // = 1.269685 inches
+    private final int TARGET_TOLERANCE_TICKS = (int) (0.45*TICKS_PER_REV / (PULLEY_DIAMETER_IN * Math.PI)) * 5; //FIXME *5
     private Telemetry telemetry;
     private boolean targetReached = true;
     public final double RIGHT_TO_LEFT_SYNC = 1;
@@ -297,7 +297,7 @@ public class DualMotorSlide {
         private long startTime;
         private int targetPosition; //ticks
         private boolean runStarted;
-        private long timeout = 10000;
+        private long timeout = 2000; // FIXME 10000;
 
         public slideToPosition(int pos, double powerCap) {
             changeTarget(pos, powerCap);

@@ -38,8 +38,8 @@ public class SampleIntake {
     public static  double distanceThreshold = 2; //in inches
     public static  double WRIST_INTAKE_CLAW = 0.67;
     public static  double WRIST_OUTTAKE_CLAW = 0.1;
-    public static  double WRIST_INTAKE_ROLLER = 0.88;
-    public static  double WRIST_OUTTAKE_ROLLER = 0.07;
+    public static  double WRIST_INTAKE_ROLLER = 0.9; //0.88; 0.95(too high)
+    public static  double WRIST_OUTTAKE_ROLLER = 0.02; //0.07;
     public static  double WRIST_IDLE_ROLLER = 0.9;
     public static  double WRIST_INIT_ROLLER = 0.0;
     public static  double WRIST_INIT_CLAW = 0.0;

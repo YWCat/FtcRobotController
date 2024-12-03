@@ -52,7 +52,9 @@ public final class RedBasketTest extends LinearOpMode {
         Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
 
         // intake actions
-        Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS+50, true);
+
+        Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS, true);
+        Action armToIntakeDip = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS+50, true);
         Action wristIntake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_INTAKE_ROLLER+0.1, true);
         Action wristOuttake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_OUTTAKE_ROLLER, true);
         Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
@@ -120,13 +122,16 @@ public final class RedBasketTest extends LinearOpMode {
                         new ParallelAction(
                                 ChamberToFstSample,
                                 new SequentialAction(
-                                       //dropSlide,
-                                       armToIntake
+                                       dropSlide,
+                                       new ParallelAction(
+                                               armToIntake,
+                                               wristIntake,
+                                               rollerOn
+                                       )
                                 )
                         ),
                         new ParallelAction(
-                                rollerOn,
-                                wristIntake,
+                                armToIntakeDip,
                                 FstSampleSleep
                         )
                 )

@@ -18,25 +18,11 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(pos_multiplier*-botLengthHalf, pos_multiplier*62.5, 0))
-                .setTangent(Math.PI/2)
-                .splineToConstantHeading(new Vector2d(pos_multiplier*(2-botLengthHalf),pos_multiplier*(18+botWidthHalf)),Math.PI/2)
-                .lineToY(pos_multiplier*(27+3.75))
-                .splineToLinearHeading(new Pose2d(-32*pos_multiplier, 36*pos_multiplier, 0), Math.PI/2)
-                .splineToSplineHeading(new Pose2d(-48*pos_multiplier,16*pos_multiplier,0), -Math.PI/2)
-                .setTangent(-Math.PI/2)
-                .lineToY(60*pos_multiplier)
-                .setTangent(Math.PI/2)
-                .lineToY(12*pos_multiplier)
-                .splineToLinearHeading(new Pose2d(-58*pos_multiplier, 16*pos_multiplier,0),-Math.PI/2)
-                .setTangent(Math.PI/2)
-                .lineToY(64*pos_multiplier)
-                .setTangent(Math.PI/2)
-                .lineToY(12*pos_multiplier)
-                .splineToLinearHeading(new Pose2d(-63*pos_multiplier, 16*pos_multiplier,0),-Math.PI/2)
-                .setTangent(Math.PI/2)
-                .lineToY(64*pos_multiplier)
-                .build());
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(pos_multiplier*(-24+botLengthHalf), pos_multiplier*(72-botWidthHalf), Math.PI))
+                        .setTangent(Math.PI/2)
+                        .splineToConstantHeading(new Vector2d(pos_multiplier*4,pos_multiplier*(18+botWidthHalf)),Math.PI/2)
+                        .lineToY(pos_multiplier*(27+3.75))
+                        .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)
                 .setDarkMode(true)
