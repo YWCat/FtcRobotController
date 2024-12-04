@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -25,7 +26,7 @@ public final class RedObserv extends LinearOpMode {
     static double botLengthHalf = 7.5;
 
     static double beginX = pos_multiplier*(-24), beginY = pos_multiplier*(-botLengthHalf+72), beginH = -Math.PI*pos_multiplier;
-    static double chamberX = pos_multiplier*(-2-botLengthHalf), chamberY = pos_multiplier*(18+botWidthHalf), chamberH = beginH;
+    static double chamberX = pos_multiplier*(-2-botLengthHalf), chamberY = pos_multiplier*(15.5+botWidthHalf), chamberH = beginH;
     static double firstSample_X = -55*pos_multiplier, Sample_Y = 13*pos_multiplier, Sample_H = 0; //X:38
 
     @Override
@@ -47,43 +48,58 @@ public final class RedObserv extends LinearOpMode {
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
         Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 0.4,  true);
         Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.2, true);
-        Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
-
+        //Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
+        Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
         // Drive actions
-
-        Action beginToChamber = drive.actionBuilder(beginPose)
+        Action beginToChamber =  drive.actionBuilder(beginPose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY)
+                .splineToConstantHeading(new Vector2d(chamberX,chamberY),Math.PI/2)
                 .build();
 
-        Action ChamberToFstSample = drive.actionBuilder(chamberPose)
+        Action chamberToObserv = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY+(pos_multiplier*7))
-                .splineToLinearHeading(new Pose2d(pos_multiplier*firstSample_X,pos_multiplier* Sample_Y,Math.PI), Math.PI/2)
+                .lineToY(pos_multiplier*(27+3.75))
+                .splineToLinearHeading(new Pose2d(-35*pos_multiplier, 36*pos_multiplier, 0), Math.PI/2)
+                .splineToSplineHeading(new Pose2d(-55*pos_multiplier,Sample_Y,0), -Math.PI/2)
+                .setTangent(-Math.PI/2)
+                .lineToY(60*pos_multiplier)
+                .setTangent(Math.PI/2)
+                .lineToY(12*pos_multiplier)
+                .splineToLinearHeading(new Pose2d(-67*pos_multiplier, Sample_Y,0),-Math.PI/2)
+                .setTangent(Math.PI/2)
+                .lineToY(60*pos_multiplier)
+                .setTangent(Math.PI/2)
+                .lineToY(12*pos_multiplier)
+                .splineToLinearHeading(new Pose2d(-76.5*pos_multiplier, Sample_Y,0),-Math.PI/2)
+                .setTangent(Math.PI/2)
+                .lineToY(67*pos_multiplier)
                 .build();
-
-        Action FstSampleSleep = drive.actionBuilder(fstSamplePose)
-                .waitSeconds(3)
-                .build();
-
-        Action BasketToSndSample = drive.actionBuilder(beginPose)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*(firstSample_X+10),pos_multiplier* Sample_Y,Math.PI), Math.PI/2)
-                .build();
-
-
-        Action BasketToThdSample = drive.actionBuilder(beginPose)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*48,pos_multiplier*48,Math.PI), Math.PI)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*(firstSample_X+20),pos_multiplier* Sample_Y,Math.PI), Math.PI/2)
-                .build();
-
-        Action goToAscent = drive.actionBuilder(beginPose)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*19,pos_multiplier*10,0), -Math.PI/2)
-                .build();
-
 
         waitForStart();
+        // Move to chamber and deposit specimen
+        Actions.runBlocking(
+                new SequentialAction(
+                        new SleepAction(2),
+                        new ParallelAction(
+                                beginToChamber,
+                                new SequentialAction(closeSpecimen, raiseSlide)
+                        ),
+                        depositSlide,
+                        openSpecimen
+                )
+        );
 
-        // strafe to chamber and deposit specimen
+        Actions.runBlocking(
+                new ParallelAction(
+                        retractSlide,
+                        chamberToObserv
+                )
+        );
+
+
+
+        // Complete trajectory
+        /*
         Actions.runBlocking(
                 drive.actionBuilder(beginPose)
                 .setTangent(Math.PI/2)
@@ -104,7 +120,7 @@ public final class RedObserv extends LinearOpMode {
                 .setTangent(Math.PI/2)
                 .lineToY(67*pos_multiplier)
                 .build());
-
+*/
 
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
 

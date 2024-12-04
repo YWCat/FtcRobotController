@@ -9,8 +9,8 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.hardware.Gamepad;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -18,14 +18,27 @@ import java.util.List;
 
 
 public class LoopUpdater {
+
     private FtcDashboard dashboard;
+    private List<LynxModule> allHubs;
     private ArrayList<Action> activeActions = new ArrayList<Action>();
     private ArrayList<PeriodicUpdatingEntity> updatingEntities = new ArrayList<PeriodicUpdatingEntity>();
     public static LoopUpdater LoopUpdaterInstance = null;
-    public LoopUpdater(){
+
+    public LoopUpdater() {
+
         dashboard = FtcDashboard.getInstance();
         LoopUpdaterInstance = this;
+
+        // Enable bulk read (auto bulk caching mode) to optimize loop intervals
+        // Note: set bulk cashing mode to MANUAL requires clearing cache in each loop, thus this is done in this class.
+        // Note: all motors need to be accessed through DCMotorEx in order to take advantage of bulk read
+        allHubs = RobotCore.getRobotCore().hardwareMap.getAll(LynxModule.class);
+        for (LynxModule module : allHubs) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
     }
+
     public static LoopUpdater getSharedLoopUpdater() throws RuntimeException{
         if(LoopUpdaterInstance==null){
             throw new RuntimeException("LoopUpdater must be initialized first");
@@ -97,6 +110,11 @@ public class LoopUpdater {
         return activeActions;
     }
     public void updateAndRunAll(){
+
+        for (LynxModule module : allHubs) {
+            module.clearBulkCache();
+        }
+
         TelemetryPacket packet = new TelemetryPacket();
 
         for (PeriodicUpdatingEntity entity:updatingEntities){
@@ -108,8 +126,6 @@ public class LoopUpdater {
             boolean needsContinue = action.run(packet);
             if (needsContinue){
                 unfinishedActions.add(action);
-            } else {
-                Log.i("UpdateActions", "Actions Active: " + unfinishedActions.size());
             }
         }
         activeActions = unfinishedActions;

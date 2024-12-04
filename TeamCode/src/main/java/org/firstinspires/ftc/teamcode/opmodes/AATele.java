@@ -10,7 +10,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.DualMotorSlide;
@@ -27,10 +27,10 @@ import org.firstinspires.ftc.teamcode.utility.SmartGamepad;
 public class AATele extends LinearOpMode{
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
+    private DcMotorEx leftFrontDrive = null;
+    private DcMotorEx leftBackDrive = null;
+    private DcMotorEx rightFrontDrive = null;
+    private DcMotorEx rightBackDrive = null;
 
     //TODO: replace this with smartGamepad
     private SmartGamepad smartGamepad1 = null;
@@ -56,18 +56,18 @@ public class AATele extends LinearOpMode{
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, RobotConfig.leftFront);
-        leftBackDrive  = hardwareMap.get(DcMotor.class, RobotConfig.leftRear);
-        rightFrontDrive = hardwareMap.get(DcMotor.class, RobotConfig.rightFront);
-        rightBackDrive = hardwareMap.get(DcMotor.class, RobotConfig.rightRear);
+        leftFrontDrive  = hardwareMap.get(DcMotorEx.class, RobotConfig.leftFront);
+        leftBackDrive  = hardwareMap.get(DcMotorEx.class, RobotConfig.leftRear);
+        rightFrontDrive = hardwareMap.get(DcMotorEx.class, RobotConfig.rightFront);
+        rightBackDrive = hardwareMap.get(DcMotorEx.class, RobotConfig.rightRear);
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotorEx.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotorEx.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotorEx.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotorEx.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -191,7 +191,7 @@ public class AATele extends LinearOpMode{
                 Action lowerSlideLowLock = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_LOCK_IN, 1, true);
                 Action waitForX1 = smartGamepad1.getWaitForButtons("x", false);
 
-                Action powerMotorsHold = rotatingSlide.slide.getSetMotorPower(DualMotorSlide.MIN_HOLD_POWER_HANG, false);
+                Action powerMotorsHold = rotatingSlide.slide.getSetMotorPower(DualMotorSlide.HOLD_POWER_HANG, false);
 
                 Action raiseSlidePrep= rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_HIGH_PREP_IN, 1, true);
                 Action raiseArmPrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_HIGH_PREP_TICKS, true);
@@ -292,13 +292,9 @@ public class AATele extends LinearOpMode{
 
 
             if(gamepad2.dpad_up){
-                if(rotatingSlide.slide.getLeftEncoder() < DualMotorSlide.MAX_EXTENSION){
-                    rotatingSlide.slide.adjustLift(1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)), false);
-                } else {
-                    rotatingSlide.slide.stopMotor();
-                }
+                rotatingSlide.slide.adjustLift(1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)));
             }  if(gamepad2.dpad_down){
-                rotatingSlide.slide.adjustLift(-1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)), false);
+                rotatingSlide.slide.adjustLift(-1 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE)));
             }  if(gamepad2.dpad_right){
                 Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() + (int) (250 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE))), false);
                 loopUpdater.addAction(moveArm);
@@ -306,8 +302,9 @@ public class AATele extends LinearOpMode{
                 Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPosition() - (int) (250 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE))), false);
                 loopUpdater.addAction(moveArm);
             } if ((!gamepad2.dpad_down && !gamepad2.dpad_up) && rotatingSlide.slide.isLevelReached()){
-                //Log.v("manualControl AATele stopMotor", "is target reached? " + rotatingSlide.slide.isLevelReached());
-                rotatingSlide.slide.stopMotor();
+                //Log.v("manualControl AATele slide holdPosition", "is target reached? " + rotatingSlide.slide.isLevelReached());
+                Log.v("Slide Power", "invoking holdPosition at 3");
+                rotatingSlide.slide.holdPosition();
             }
 
             if(smartGamepad2.left_bumper_pressed()){
@@ -329,7 +326,7 @@ public class AATele extends LinearOpMode{
                 rotatingSlide.updateHangStatus(false);
                 intakeMode = 0;
                 //sampleIntake.manualMoveRoller(0);
-                rotatingSlide.slide.stopMotor();
+                rotatingSlide.slide.holdPosition();
                 rotatingSlide.arm.stopMotor();
             }
             if(smartGamepad2.right_stick_button_pressed()){

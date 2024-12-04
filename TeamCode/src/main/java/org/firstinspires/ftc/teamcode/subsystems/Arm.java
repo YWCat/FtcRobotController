@@ -51,12 +51,13 @@ public class Arm {
         private long timeout = 10000;
         public armToPosition(int pos){
             changeTarget(pos);
-            Log.i(" Arm RobotActions", "Created new action PreChamber");
+            Log.i(" Arm RobotActions", "Created new action armToPosition.");
         }
         public void changeTarget(int pos){
             targetPosition = pos;
             runStarted = false;
             cancelled = false;
+            Log.i("armMotor changeTarget() called", "motor pos: " + armMotor.getCurrentPosition() + " target pos: " + targetPosition);
         }
         public boolean run(@NonNull TelemetryPacket p){
             if(!runStarted){
@@ -68,14 +69,23 @@ public class Arm {
                 return true;
             }
             else{
-                if(armMotor.isBusy() && System.currentTimeMillis()-startTime < timeout && !cancelled) {
+                boolean motorBusy = armMotor.isBusy();
+                boolean targetReached = (Math.abs(armMotor.getCurrentPosition() - targetPosition) <= TARGET_TOLERANCE);
+                boolean timeOut = (System.currentTimeMillis()-startTime >= timeout);
+                //if(motorBusy && !timeOut && !cancelled) {
+                if (!targetReached && !timeOut && !cancelled) {
                     Log.i("armMotor RobotActions", "motor pos: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
                     return true;
                 } else {
-                    if (!armMotor.isBusy()){
+                    //if (!motorBusy){
+                    if (targetReached) {
                         Log.i("armMotor RobotActions", "arm done lifting: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
-                    } else{
-                        Log.i("armMotor RobotActions", "timeout; position: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
+                    } else if (timeOut){
+                        Log.i("armMotor RobotActions", "timeout; startTime " + startTime + " Position: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
+                    } else if (cancelled){
+                        Log.i("armMotor RobotActions", "cancelled");
+                    } else {
+                        Log.i("armMotor RobotActions", "stopped no reason");
                     }
                     armMotor.setVelocity(0);
                     armMotor.setPower(HOLD_POWER);

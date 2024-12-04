@@ -27,7 +27,7 @@ public final class RedBasketTest extends LinearOpMode {
 
     static double beginX = pos_multiplier*(botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = -Math.PI*pos_multiplier;
     static double chamberX = beginX, chamberY = pos_multiplier*(18+botWidthHalf), chamberH = beginH;
-    static double firstSample_X = 35.5, Sample_Y = 18.375, Sample_H = -Math.PI*pos_multiplier; //X:38
+    static double firstSample_X = 39, Sample_Y = 18.375, Sample_H = -Math.PI*pos_multiplier; //X:38
     static double basket_X = 58.8674, basket_Y = 56.1745, basket_H = Math.PI+(-Math.PI/4*pos_multiplier);
     @Override
     public void runOpMode() throws InterruptedException {
@@ -47,15 +47,14 @@ public final class RedBasketTest extends LinearOpMode {
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 0.4,  true);
+        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1,  true);
         Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.2, true);
         Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
 
         // intake actions
 
-        Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS, true);
-        Action armToIntakeDip = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS+50, true);
-        Action wristIntake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_INTAKE_ROLLER+0.1, true);
+        Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS-100, true);
+        Action wristIntake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_INTAKE_ROLLER, true);
         Action wristOuttake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_OUTTAKE_ROLLER, true);
         Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
         Action prepIntake = sampleIntake.getPrepIOAction(true, true);
@@ -109,34 +108,32 @@ public final class RedBasketTest extends LinearOpMode {
                 new SequentialAction(
                     new ParallelAction(
                             beginToChamber,
-                            new SequentialAction(closeSpecimen) //, raiseSlide)
+                            new SequentialAction(closeSpecimen, raiseSlide)
                     ),
-                        //depositSlide,
+                        depositSlide,
                         openSpecimen
                 )
         );
-
-        // spline to 1st sample, then intake
+        // spline to 1st sample, prep for intake
         Actions.runBlocking(
-                new SequentialAction(
-                        new ParallelAction(
-                                ChamberToFstSample,
-                                new SequentialAction(
-                                       dropSlide,
-                                       new ParallelAction(
-                                               armToIntake,
-                                               wristIntake,
-                                               rollerOn
-                                       )
-                                )
-                        ),
-                        new ParallelAction(
-                                armToIntakeDip,
-                                FstSampleSleep
-                        )
+                new ParallelAction(
+                        ChamberToFstSample,
+                        retractSlide,
+                        armToIntake,
+                        wristIntake
+                )
+        );
+        // Intake
+        Action armToIntakeDip = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS+300, true);
+        Actions.runBlocking(
+                new ParallelAction(
+                        armToIntakeDip,
+                        rollerOn,
+                        new SleepAction(1)
                 )
         );
 
+        // Going to basket, extend slides, and rotate arm
 
 /*
         Actions.runBlocking(

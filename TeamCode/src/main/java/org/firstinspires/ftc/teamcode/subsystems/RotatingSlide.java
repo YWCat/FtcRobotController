@@ -18,6 +18,7 @@ public class RotatingSlide {
     public static final double SLIDE_CHAMBER_PREP_IN = 16.48;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
     public static final double SLIDE_CHAMBER_PLACE_IN = 12.59;
+    public static final double SLIDE_CHAMBER_HI_IN = 16;
     public static final int SLIDE_PICK_UP_SPECIMEN_TICKS = 800;
     public static final double SLIDE_PICK_UP_SPECIMEN_IN = 6.10;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
@@ -25,6 +26,7 @@ public class RotatingSlide {
     //BASKET
     public static final double SLIDE_BASKET_IN = 29.5;
     public static  int ARM_BASKET_TICKS = -280; //ticks
+    public static int ARM_AUTO_BASKET_TICKS = 280;
 
     //HANG
     public static  int SLIDE_HANG_PREP_TICKS = 1800;
@@ -124,7 +126,6 @@ public class RotatingSlide {
 
     public boolean isHorizontal(){
 
-        Log.v("horizontalLimit rotatingSlide", "is horizontal: " + (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD) + "is hanging: " + IS_HANGING);
         if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD && !IS_HANGING) {
             return true;
         } else{
