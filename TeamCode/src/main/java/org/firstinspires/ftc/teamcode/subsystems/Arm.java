@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 public class Arm {
     DcMotorEx armMotor;
-    public static armToPosition prevMoveArmAction = null;
+    public armToPosition prevMoveArmAction = null;
     private static final double TICKS_PER_REV = 384.5; //
     private static final int TARGET_TOLERANCE = 70; //units: ticks
         //approx the height of a sample when doing intake
@@ -32,6 +32,7 @@ public class Arm {
         armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         armMotor.setTargetPositionTolerance(TARGET_TOLERANCE);
+        armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
     public void resetEncoder(){
         armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -70,11 +71,14 @@ public class Arm {
             }
             else{
                 boolean motorBusy = armMotor.isBusy();
-                boolean targetReached = (Math.abs(armMotor.getCurrentPosition() - targetPosition) <= TARGET_TOLERANCE);
+                int currentPosition =armMotor.getCurrentPosition();
+                double currentVelocity = armMotor.getVelocity();
+                boolean targetReached = (Math.abs(currentPosition - targetPosition) <= TARGET_TOLERANCE) && (currentVelocity <= 20);
                 boolean timeOut = (System.currentTimeMillis()-startTime >= timeout);
+                Log.i("armMotor RobotActions", "motor pos: " + currentPosition + "target pos: " + targetPosition + "velocity: " + currentVelocity + "reached? = " + targetReached);
                 //if(motorBusy && !timeOut && !cancelled) {
                 if (!targetReached && !timeOut && !cancelled) {
-                    Log.i("armMotor RobotActions", "motor pos: " + armMotor.getCurrentPosition() + "target pos: " + armMotor.getTargetPosition());
+                    Log.i("armMotor RobotActions", "target not reached and not cancelled");
                     return true;
                 } else {
                     //if (!motorBusy){

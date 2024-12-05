@@ -24,7 +24,8 @@ public class DualMotorSlide {
     //Hardware: 2 lift motors
     public DcMotorEx slideMotorL;
     public DcMotorEx slideMotorR;
-
+    private static double savedSlideMotorLEncoder;
+    private static double savedSlideMotorREncoder;
     private static final double TICKS_PER_REV = 537.7; //312 RPM
     private static final double PULLEY_DIAMETER_IN = (32 / 25.4);
     private final double TARGET_TOLERANCE_INCH = 0.45;
@@ -46,13 +47,13 @@ public class DualMotorSlide {
     public static double kP = 0.75; //slow down at ~1 or 2 inches from target
     public static double kI = 0.0; //0.0000000001;
     public static double kD = 0.0;
-    public static double PID_RANGE = 0.8;
+    public static double PID_RANGE = 1.0;
 
     public static double minPowerUp = 0.0;
     public static double minPowerDown = 0.0;
 
     private boolean slideIsHorizontal = false;
-    public static double HOLD_POWER_HANG = 0.5;
+    public static double HOLD_POWER_HANG = -0.3;
 
     private double powerL;
     private double powerR;
@@ -314,6 +315,7 @@ public class DualMotorSlide {
         }
 
         public boolean run(@NonNull TelemetryPacket packet){
+            targetReached = false; //slide not in transition state
             slideMotorL.setPower(power);
             slideMotorR.setPower(power);
             return false;
@@ -352,6 +354,7 @@ public class DualMotorSlide {
     }
 
     public void changeHorizontalSetting(boolean horizontal) {
+        Log.i("HorizontalLimit 1", "from dualMotorSlide, " + horizontal);
         slideIsHorizontal = horizontal;
         if (horizontal) {
             minPowerUp = 0;
@@ -370,12 +373,15 @@ public class DualMotorSlide {
 
     public double getHoldPower() {
         if (slideIsHorizontal) {
+            Log.i("holdPower", "horizontal, 0");
             return 0;
         } else {
             if (getPosition() > 26) {
+                Log.i("holdPower", "tall mode, 0.25");
                 return 0.25;
             } else {
-                return 0.1;
+                Log.i("holdPower", "normal mode, 0.002");
+                return 0.002;
             }
         }
     }

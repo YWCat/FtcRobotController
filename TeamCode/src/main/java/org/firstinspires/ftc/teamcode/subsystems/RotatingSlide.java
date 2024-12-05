@@ -15,9 +15,9 @@ public class RotatingSlide {
 
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
-    public static final double SLIDE_CHAMBER_PREP_IN = 16.48;
+    public static final double SLIDE_CHAMBER_PREP_IN = 15.63;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final double SLIDE_CHAMBER_PLACE_IN = 12.59;
+    public static final double SLIDE_CHAMBER_PLACE_IN = 11.59;
     public static final double SLIDE_CHAMBER_HI_IN = 16;
     public static final int SLIDE_PICK_UP_SPECIMEN_TICKS = 800;
     public static final double SLIDE_PICK_UP_SPECIMEN_IN = 6.10;

@@ -31,7 +31,7 @@ public class SpecimenIntake {
         private long timeout = 500;
         public moveSpecimenIntake(double pos){
             changeTarget(pos);
-            Log.i(" Arm RobotActions", "Created new action PreChamber");
+            //Log.i(" Arm RobotActions", "Created new action PreChamber");
         }
         public void changeTarget(double pos){
             targetPosition = pos;
@@ -47,10 +47,10 @@ public class SpecimenIntake {
             }
             else{
                 if(System.currentTimeMillis()-startTime < timeout) {
-                    Log.i("specimenServo RobotActions", "target pos: " + specimenServo.getPosition());
+                    //Log.i("specimenServo RobotActions", "target pos: " + specimenServo.getPosition());
                     return true;
                 } else {
-                    Log.i("specimenServo RobotActions", "target pos: " + specimenServo.getPosition());
+                    //Log.i("specimenServo RobotActions", "target pos: " + specimenServo.getPosition());
                     return false;
                 }
             }

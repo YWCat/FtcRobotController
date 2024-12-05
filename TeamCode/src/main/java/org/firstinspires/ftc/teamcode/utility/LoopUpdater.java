@@ -127,7 +127,7 @@ public class LoopUpdater {
             if (needsContinue){
                 unfinishedActions.add(action);
             }
-        }
+          }
         activeActions = unfinishedActions;
         Log.i("UpdateActs", "Actions Active: " + activeActions.size());
 

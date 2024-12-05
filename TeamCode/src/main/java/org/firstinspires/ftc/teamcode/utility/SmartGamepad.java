@@ -87,8 +87,8 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
         return result;
     }
 
-    public boolean right_stick_released() {
-        boolean result =  (Math.abs(right_stick_x) + Math.abs(right_stick_y) < 0.001) &&
+    public boolean left_stick_diff() {
+        boolean result =  (Math.abs(left_stick_x - right_stick_y) < 0.5) &&
                 (Math.abs(previous.right_stick_x) + Math.abs(previous.right_stick_y) > 0.001);
         if (result) {
             //Log.v("gamepad/transition", "right stick released: True");
@@ -139,11 +139,21 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
                             //Log.v("RobotActions WaitForButton", "right_trigger pressed");
                         }
                         notAllPressed = notAllPressed ||  !right_trigger_pressed();
-                    }  else if (button.equals("dpad_up")){
+                    } else if (button.equals("left_bumper")){
+                        if(left_bumper_pressed()){
+                            //Log.v("RobotActions WaitForButton", "left_bumper pressed");
+                        }
+                        notAllPressed = notAllPressed ||  !left_bumper_pressed();
+                    } else if (button.equals("dpad_up")){
                         if(dpad_up_pressed()){
                             //Log.v("RobotActions WaitForButton", "dpad_up pressed");
                         }
-                        notAllPressed = notAllPressed ||  !right_trigger_pressed();
+                        notAllPressed = notAllPressed ||  !dpad_up_pressed();
+                    }  else if (button.equals("dpad_right")){
+                        if(dpad_right_pressed()){
+                            //Log.v("RobotActions WaitForButton", "dpad_right_ pressed");
+                        }
+                        notAllPressed = notAllPressed ||  !dpad_right_pressed();
                     } else if(button.equals("a")){
                         if(a_pressed()){
                             //Log.v("RobotActions WaitForButton", "a pressed");
@@ -172,7 +182,7 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
         }
         public void cancel(){
             cancelled = true;
-            Log.i("intakeServo RobotActions", "action cancelled");
+            //Log.i("intakeServo RobotActions", "action cancelled");
         }
     }
 

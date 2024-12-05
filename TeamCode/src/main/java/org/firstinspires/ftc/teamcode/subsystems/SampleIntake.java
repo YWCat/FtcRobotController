@@ -41,6 +41,7 @@ public class SampleIntake {
     public static  double WRIST_INTAKE_ROLLER = 0.9; //0.88; 0.95(too high)
     public static  double WRIST_OUTTAKE_ROLLER = 0.02; //0.07;
     public static  double WRIST_IDLE_ROLLER = 0.9;
+    public static  double WRIST_HANG_ROLLER = 0.0;
     public static  double WRIST_INIT_ROLLER = 0.0;
     public static  double WRIST_INIT_CLAW = 0.0;
 
@@ -50,7 +51,7 @@ public class SampleIntake {
         distSensor = robotCore.hardwareMap.get(DistanceSensor.class, RobotConfig.distanceSensor);
         wristServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.wrist); //0.5 is intake, 0.9 is outtake, base pos = 1.0, hold pos = 0.8
         intakeServo.setPower(0);
-        Log.v("intakeServo initialized", "power = " + 0);
+        //Log.v("intakeServo initialized", "power = " + 0);
         wristServo.setPosition(WRIST_INIT_ROLLER);
     }
     public double getWristPosition(){
@@ -59,7 +60,7 @@ public class SampleIntake {
 
     public void manualMoveRoller(double power){
         intakeServo.setPower(power);
-        Log.v("intakeServo manualMove", "power = " + power);
+        //Log.v("intakeServo manualMove", "power = " + power);
     }
 
     public final class startAndStopRoller implements Action {
@@ -68,11 +69,11 @@ public class SampleIntake {
         private double servoPower; //
         private boolean isIntake;
         private boolean runStarted;
-        private long timeout = 2500; //in milliseconds
+        private long timeout = 1500; //in milliseconds
         private DcMotorSimple.Direction direction;
         public startAndStopRoller(boolean intake){
             changeTarget(intake);
-            Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
+            //Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(boolean intake){
             if(mode == Mode.CLAW){
@@ -108,7 +109,7 @@ public class SampleIntake {
         public boolean run (@NonNull TelemetryPacket p){
             if(!runStarted){
                 intakeServo.setPower(servoPower);
-                Log.i("intakeServo RobotActions", "set power: " + servoPower);
+                //Log.i("intakeServo RobotActions", "set power: " + servoPower);
                 intakeServo.setDirection(direction);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
@@ -119,16 +120,16 @@ public class SampleIntake {
                 if(System.currentTimeMillis()-startTime < timeout && !cancelled) { //not timed out or forced to stop
                     if(mode == Mode.ROLLER && isIntake && distSensor.getDistance(DistanceUnit.INCH)<distanceThreshold){
                         intakeServo.setPower(0);
-                        Log.i("intakeServo RobotActions", "detected a sample");
+                        //Log.i("intakeServo RobotActions", "detected a sample");
                         return false;
                     }
                     //Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return true;
                 } else {
-                    Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    //Log.i("intakeServo RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     if(mode == Mode.ROLLER){
                         intakeServo.setPower(0);
-                        Log.i("intakeServo RobotActions power off", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                        //Log.i("intakeServo RobotActions power off", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     }
                     return false;
                 }
@@ -137,7 +138,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            Log.i("intakeServo RobotActions", "action cancelled");
+            //Log.i("intakeServo RobotActions", "action cancelled");
         }
     }
     public final class startRoller implements Action {
@@ -150,7 +151,7 @@ public class SampleIntake {
         private DcMotorSimple.Direction direction;
         public startRoller(boolean intake){
             changeTarget(intake);
-            Log.i(" intakeServoStartRoller RobotActions", "Created new action startAndStopRoller");
+            //Log.i(" intakeServoStartRoller RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(boolean intake){
             if(mode == Mode.CLAW){
@@ -185,7 +186,7 @@ public class SampleIntake {
 
         public boolean run (@NonNull TelemetryPacket p){
                 intakeServo.setPower(servoPower);
-                Log.i("intakeServoStartRoller RobotActions", "set power: " + servoPower);
+                //Log.i("intakeServoStartRoller RobotActions", "set power: " + servoPower);
                 intakeServo.setDirection(direction);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
@@ -195,7 +196,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+            //Log.i("intakeServoStartRoller RobotActions", "action cancelled");
         }
     }
 
@@ -209,7 +210,7 @@ public class SampleIntake {
         private DcMotorSimple.Direction direction;
         public stopRoller(){
             changeTarget();
-            Log.i(" intakeServo StopRoller RobotActions", "Created new action startAndStopRoller");
+            //Log.i(" intakeServo StopRoller RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(){
             if(mode == Mode.CLAW){
@@ -231,7 +232,7 @@ public class SampleIntake {
 
         public boolean run (@NonNull TelemetryPacket p){
             intakeServo.setPower(servoPower);
-            Log.i("intakeServo StopRoller RobotActions", "set power: " + servoPower);
+            //Log.i("intakeServo StopRoller RobotActions", "set power: " + servoPower);
             intakeServo.setDirection(direction);
             startTime = System.currentTimeMillis();
             runStarted = true;
@@ -241,7 +242,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            Log.i("intakeServo StopRoller RobotActions", "action cancelled");
+            //Log.i("intakeServo StopRoller RobotActions", "action cancelled");
         }
     }
 
@@ -254,7 +255,7 @@ public class SampleIntake {
         private DcMotorSimple.Direction direction;
         public turnWrist(double position){
             changeTarget(position);
-            Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
+            //Log.i(" Arm RobotActions", "Created new action startAndStopRoller");
         }
         public void changeTarget(double position){
             wristPos = position;
@@ -271,12 +272,12 @@ public class SampleIntake {
                 return true;
             }
             else{
-                Log.i("intakeWrist RobotActions", "is cancelled?"  + cancelled);
+                //Log.i("intakeWrist RobotActions", "is cancelled?"  + cancelled);
                 if(System.currentTimeMillis()-startTime < timeout && !cancelled) { //not timed out or forced to stop
-                    Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    //Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return true;
                 } else {
-                    Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
+                    //Log.i("intakeWrist RobotActions", "power: " + intakeServo.getPower() + "direction: " + intakeServo.getDirection());
                     return false;
                 }
             }
@@ -284,7 +285,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            Log.i("intakeServo RobotActions", "action cancelled");
+            //Log.i("intakeServo RobotActions", "action cancelled");
         }
     }
     public startAndStopRoller getStartAndStopRollerAction(boolean intake, boolean forceNew){

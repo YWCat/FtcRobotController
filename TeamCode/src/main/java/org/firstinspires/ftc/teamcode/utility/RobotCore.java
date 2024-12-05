@@ -33,11 +33,11 @@ public class RobotCore {
 
     public double mapJsRadiusVal(double jsVal, boolean slow){
         //https://www.desmos.com/calculator/ekyhsv03yo
-        double startPos = 0.1; //a
+        double startPos = 0.15; //a
         double startVal = 0.1; //b
-        double endSlowPos = 0.85;//c
-        double endSlowVal = 0.15; //d
-        double maxVal = 1; //f
+        double endSlowPos = 0.92;//c
+        double endSlowVal = 0.25; //d
+        double maxVal = 0.8; //F
         double startSlope = startVal/startPos;
         double defSlope = (endSlowVal-startVal)/(endSlowPos-startPos);
         double endSlope = (maxVal-endSlowVal)/(1-endSlowPos);
