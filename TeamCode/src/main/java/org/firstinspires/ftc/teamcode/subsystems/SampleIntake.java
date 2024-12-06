@@ -8,6 +8,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -23,6 +25,7 @@ public class SampleIntake {
     Servo wristServo;
     public static startAndStopRoller startAndStopRollerAction = null;
     public static startRoller startRollerAction = null;
+    public static reverseRoller reverseRollerAction = null;
     public static stopRoller stopRollerAction = null;
     public static turnWrist turnWristAction = null;
     public static  double INTAKE_POS_CLAW = -1;
@@ -200,6 +203,60 @@ public class SampleIntake {
         }
     }
 
+    public final class reverseRoller implements Action {
+        private boolean cancelled = false;
+        private long startTime;
+        private double servoPower; //
+        private boolean runStarted;
+        private long timeout = 1500; //in milliseconds
+        private DcMotorSimple.Direction direction;
+        public reverseRoller(long tout){
+            changeTarget(tout);
+            //Log.i(" intakeServoReverseRoller RobotActions", "Created new action reverseRoller");
+        }
+        public void changeTarget(long tout){
+            if(mode == Mode.CLAW){
+                direction = DcMotorSimple.Direction.FORWARD;
+                //TODO
+            } else {
+                direction = DcMotorSimple.Direction.REVERSE;
+                servoPower = OUTTAKE_POWER_ROLLER;
+            }
+            timeout = tout;
+            runStarted = false;
+            cancelled = false;
+
+        }
+
+        public boolean run (@NonNull TelemetryPacket p){
+            if (!runStarted) {
+                intakeServo.setPower(servoPower);
+                //Log.i("intakeServoRvsRoller RobotActions", "REVERSE set power: " + servoPower + " timeout: " + timeout);
+                intakeServo.setDirection(direction);
+                startTime = System.currentTimeMillis();
+                runStarted = true;
+                Actions.runBlocking( new SleepAction(0.01));
+                return true;
+            } else if (System.currentTimeMillis() - startTime >= timeout) {
+                intakeServo.setPower(servoPower);
+                intakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
+                Actions.runBlocking( new SleepAction(0.01));
+                //Log.i("intakeServoRvsRoller RobotActions", "FORWARD set power: " + servoPower);
+                return false;
+            } else {
+                Actions.runBlocking( new SleepAction(0.01));
+                //Log.i("intakeServoRvsRoller RobotActions", "wait for timeout");
+                return true;
+            }
+
+        }
+        public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
+            intakeServo.setPower(0);
+            cancelled = true;
+            //Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+        }
+    }
+
     public final class stopRoller implements Action {
         private boolean cancelled = false;
         private long startTime;
@@ -310,6 +367,19 @@ public class SampleIntake {
             return startRollerAction;
         } else{
             return new startRoller(intake);
+        }
+    }
+
+    public reverseRoller getReverseRollerAction(long timeout, boolean forceNew){
+        if(!forceNew){
+            if(reverseRollerAction == null){
+                reverseRollerAction = new reverseRoller(timeout);
+            } else {
+                reverseRollerAction.changeTarget(timeout);
+            }
+            return reverseRollerAction;
+        } else{
+            return new reverseRoller(timeout);
         }
     }
     public stopRoller getStopRollerAction( boolean forceNew){

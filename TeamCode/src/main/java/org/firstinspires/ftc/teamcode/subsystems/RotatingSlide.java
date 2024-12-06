@@ -26,7 +26,7 @@ public class RotatingSlide {
     //BASKET
     public static final double SLIDE_BASKET_IN = 29.5;
     public static  int ARM_BASKET_TICKS = -280; //ticks
-    public static int ARM_AUTO_BASKET_TICKS = 280;
+    public static int ARM_AUTO_BASKET_TICKS = 380;
 
     //HANG
     public static  int SLIDE_HANG_PREP_TICKS = 1800;

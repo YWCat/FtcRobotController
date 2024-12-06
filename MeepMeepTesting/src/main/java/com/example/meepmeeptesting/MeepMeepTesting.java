@@ -10,7 +10,19 @@ public class MeepMeepTesting {
     static int pos_multiplier = -1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
+    static double beginX = pos_multiplier*(botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = -Math.PI*pos_multiplier;
+    static double chamberX = beginX, chamberY = pos_multiplier*(18+botWidthHalf), chamberH = beginH;
+    static double firstSample_X = pos_multiplier*39.5, Sample_Y = pos_multiplier*24, Sample_H = -Math.PI*pos_multiplier; //X:38
+    static double basket_X = pos_multiplier*56, basket_Y = pos_multiplier*53, basket_H = Math.PI+(-Math.PI/4*pos_multiplier);
+
     public static void main(String[] args) {
+        Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
+        Pose2d chamberPose = new Pose2d(beginX, chamberY, beginH);
+        Pose2d fstSamplePose = new Pose2d(firstSample_X, Sample_Y, Sample_H);
+        Pose2d sndSamplePose = new Pose2d(firstSample_X+(pos_multiplier*10), Sample_Y, Sample_H);
+        Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*20), Sample_Y, Sample_H);
+        Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
+
         MeepMeep meepMeep = new MeepMeep(800);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
@@ -18,11 +30,12 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(pos_multiplier*(-24+botLengthHalf), pos_multiplier*(72-botWidthHalf), Math.PI))
-                        .setTangent(Math.PI/2)
-                        .splineToConstantHeading(new Vector2d(pos_multiplier*4,pos_multiplier*(18+botWidthHalf)),Math.PI/2)
-                        .lineToY(pos_multiplier*(27+3.75))
-                        .build());
+
+        myBot.runAction(myBot.getDrive().actionBuilder(basketPose)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*48,pos_multiplier*48,Math.PI), Math.PI)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*36, pos_multiplier*36, pos_multiplier* Math.PI), Math.PI/2)
+                .splineToLinearHeading(sndSamplePose, Math.PI/2)
+                .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)
                 .setDarkMode(true)
