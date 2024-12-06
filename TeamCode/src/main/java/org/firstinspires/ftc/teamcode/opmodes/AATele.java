@@ -158,12 +158,16 @@ public class AATele extends LinearOpMode{
                 Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, false);
                 Action prepIntake = sampleIntake.getPrepIOAction(true, false);
                 Action rollerOn = sampleIntake.getStartRollerAction(true, false);
-                Action waitForDpadR = smartGamepad2.getWaitForButtons("b", false);
+                Action waitforB = smartGamepad2.getWaitForButtons("b", false);
                 Action pickSample = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS, true);
 
-                Action toIntake = new ParallelAction( rollerOn, new SequentialAction(retractSlide, armToIntake, prepIntake), waitForDpadR, pickSample);
+                Action toIntake = new ParallelAction(
+                        rollerOn,
+                        new SequentialAction(retractSlide, armToIntake, prepIntake, waitforB, pickSample));
                 if(rotatingSlide.isHorizontal()){
-                    toIntake = new ParallelAction( rollerOn, new SequentialAction(armToIntake, prepIntake), waitForDpadR, pickSample);
+                    toIntake = new ParallelAction(
+                            rollerOn,
+                            new SequentialAction(armToIntake, prepIntake, waitforB, pickSample));
                 }
                 //loopUpdater.addAction(toIntake);
 
