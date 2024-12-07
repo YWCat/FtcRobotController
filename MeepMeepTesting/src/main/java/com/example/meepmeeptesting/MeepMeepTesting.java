@@ -22,6 +22,7 @@ public class MeepMeepTesting {
         Pose2d sndSamplePose = new Pose2d(firstSample_X+(pos_multiplier*10), Sample_Y, Sample_H);
         Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*20), Sample_Y, Sample_H);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
+        Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*2, basket_Y-pos_multiplier*4, basket_H);
 
         MeepMeep meepMeep = new MeepMeep(800);
 
@@ -31,10 +32,9 @@ public class MeepMeepTesting {
                 .build();
 
 
-        myBot.runAction(myBot.getDrive().actionBuilder(basketPose)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*48,pos_multiplier*48,Math.PI), Math.PI)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*36, pos_multiplier*36, pos_multiplier* Math.PI), Math.PI/2)
-                .splineToLinearHeading(sndSamplePose, Math.PI/2)
+        myBot.runAction(myBot.getDrive().actionBuilder(basket2Pose)
+                .splineToSplineHeading(new Pose2d(pos_multiplier*38,pos_multiplier*18,Math.PI/2), -Math.PI/2)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*25,pos_multiplier*10,0), 0)
                 .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)

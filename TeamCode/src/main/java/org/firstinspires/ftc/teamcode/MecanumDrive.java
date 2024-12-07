@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -45,6 +47,7 @@ import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
+import org.firstinspires.ftc.teamcode.subsystems.LimeLight;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 
 import java.lang.Math;
@@ -93,6 +96,7 @@ public final class MecanumDrive {
     }
 
     public static Params PARAMS = new Params();
+    public boolean enPoseCorr= false;
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
             PARAMS.inPerTick * PARAMS.trackWidthTicks, PARAMS.inPerTick / PARAMS.lateralInPerTick);
@@ -123,6 +127,7 @@ public final class MecanumDrive {
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
 
+    public LimeLight LLCam = null;
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftBack, rightBack, rightFront;
         public final IMU imu;
@@ -285,6 +290,7 @@ public final class MecanumDrive {
         @Override
         public boolean run(@NonNull TelemetryPacket p) {
             double t;
+
             if (beginTs < 0) {
                 beginTs = Actions.now();
                 t = 0;
@@ -300,6 +306,37 @@ public final class MecanumDrive {
 
                 return false;
             }
+//FIXME
+/*
+            if (enPoseCorr && (LLCam != null)) {
+                LLCam.getLLPose();
+                if ((LLCam.limePose != null)
+                        && (LLCam.timeStamp>=beginTs)
+                        && (Math.abs(LLCam.limePose.position.x) >= 30) // filter outliers
+                ) {
+                    //pose = LLCam.limePose;
+                    Pose2d LLpose = LLCam.limePose;
+                    Vector2d finVect = new Vector2d(
+                            (LLpose.position.x + pose.position.x)/2,
+                            (LLpose.position.y + pose.position.y)/2
+                            );
+                    Double finH = (LLpose.heading.toDouble() + pose.heading.toDouble())/2;
+
+                    Pose2d finPose = new Pose2d(finVect.x, finVect.y, finH);
+                    Log.i("LLCAM-MECDRV", "LLCam detected. X=" +LLpose.position.x
+                            +" Y="+LLpose.position.y+" H="+LLpose.heading);
+                    Log.i("LLCAM-MECDRV", "Robot encoder. X=" +pose.position.x
+                            +" Y="+pose.position.y+" H="+pose.heading);
+                    if (   (Math.abs(LLpose.position.x - pose.position.x)<=2)
+                        && (Math.abs(LLpose.position.y - pose.position.y)<=2) ) {
+                        pose = finPose;
+                        Log.i("LLCAM-MECDRV", "Corrected Pose X="+pose.position.x
+                                +" Y="+pose.position.y+" H="+pose.heading);
+                    }
+
+                }
+            }
+ */
 
             Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
             targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));

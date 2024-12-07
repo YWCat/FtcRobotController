@@ -26,6 +26,7 @@ public class SampleIntake {
     public static startAndStopRoller startAndStopRollerAction = null;
     public static startRoller startRollerAction = null;
     public static reverseRoller reverseRollerAction = null;
+    public static waitAct waitAction = null;
     public static stopRoller stopRollerAction = null;
     public static turnWrist turnWristAction = null;
     public static  double INTAKE_POS_CLAW = -1;
@@ -367,6 +368,58 @@ public class SampleIntake {
             return startRollerAction;
         } else{
             return new startRoller(intake);
+        }
+    }
+
+    public final class waitAct implements Action {
+        private boolean cancelled = false;
+        private long startTime;
+        private boolean runStarted;
+        private long timeout = 1500; //in milliseconds
+        private long cnt = 0;
+        public waitAct(long tout){
+            changeTarget(tout);
+            //Log.i(" intakeServoReverseRoller RobotActions", "Created new action reverseRoller");
+        }
+        public void changeTarget(long tout){
+            timeout = tout;
+            runStarted = false;
+            cancelled = false;
+        }
+
+        public boolean run (@NonNull TelemetryPacket p){
+            if (!runStarted) {
+                startTime = System.currentTimeMillis();
+                runStarted = true;
+                cnt++;
+                return true;
+            } else if (System.currentTimeMillis() - startTime >= timeout) {
+                Log.i("waitAct", "timeout: " + timeout);
+                return false;
+            } else {
+                cnt++;
+                Log.i("waitAct", "wait for timeout. cnt = " + cnt);
+                return true;
+            }
+
+        }
+        public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
+            intakeServo.setPower(0);
+            cancelled = true;
+            //Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+        }
+    }
+
+    public waitAct getWaitAction(long timeout, boolean forceNew){
+        if(!forceNew){
+            if(waitAction == null){
+                waitAction = new waitAct(timeout);
+            } else {
+                waitAction.changeTarget(timeout);
+            }
+            return waitAction;
+        } else{
+            return new waitAct(timeout);
         }
     }
 

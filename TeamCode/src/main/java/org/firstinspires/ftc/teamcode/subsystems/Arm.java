@@ -93,6 +93,7 @@ public class Arm {
                     }
                     armMotor.setVelocity(0);
                     armMotor.setPower(HOLD_POWER);
+                    Log.i("AUTO", "Done arm: target = "+targetPosition);
                     return false;
                 }
             }

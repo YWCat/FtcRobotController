@@ -28,7 +28,7 @@ public class DualMotorSlide {
     private static double savedSlideMotorREncoder;
     private static final double TICKS_PER_REV = 537.7; //312 RPM
     private static final double PULLEY_DIAMETER_IN = (32 / 25.4);
-    private final double TARGET_TOLERANCE_INCH = 0.45;
+    private double TARGET_TOLERANCE_INCH = 0.45;
     private final double TARGET_STATIC_THREASHOLD = 20;
 
     private final int MAX_VERTICAL_LIMIT_TICKS = 4300;     // Hard limit: 283mm * 3 converted to ticks: 4543. Also note slide cannot be fully retracted by 1cm.
@@ -82,6 +82,10 @@ public class DualMotorSlide {
         coefficients.kD = kD;
         pidfController = new PIDFController(coefficients, 0.0, 0.0, getHoldPower());
         //Log.v("PIDLift: status: ", "init");
+    }
+
+    public void setTolerance (double tol){
+        this.TARGET_TOLERANCE_INCH = tol;
     }
 
     public double mapPower(double power){
@@ -257,7 +261,7 @@ public class DualMotorSlide {
             } else {
                 updateTargetReached();
                 //Log.i("slideMotor RobotActions", "motor pos: " + slideMotorL.getCurrentPosition() + "target pos: " + slideMotorL.getTargetPosition());
-                if(!isLevelReached() && System.currentTimeMillis() - startTime < timeout && !cancelled){
+                if(!isLevelReached() && (System.currentTimeMillis() - startTime < timeout) && !cancelled){
                     double measuredPositionL = ticksToInches(slideMotorL.getCurrentPosition());
                     double measuredPositionR = ticksToInches(slideMotorR.getCurrentPosition());
                     double powerFromPIDF = pidfController.update(measuredPositionL);
@@ -290,6 +294,7 @@ public class DualMotorSlide {
                         targetReached = true;
                         Log.v("Slide Action", "timeout");
                     }
+                    Log.i("AUTO", "Done slide: target = "+ targetPosition);
                     return false;
                 }
             }
