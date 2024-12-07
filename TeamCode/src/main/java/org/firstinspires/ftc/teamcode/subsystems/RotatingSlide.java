@@ -32,6 +32,7 @@ public class RotatingSlide {
     public static  int SLIDE_HANG_PREP_TICKS = 1800;
     public static  int ARM_HANG_PREP_TICKS = 820;
     public static int ARM_HANG_LOW_TICKS = 2600;
+    public static double SLIDE_HANG_LOW_FIRST_IN = 7;
     public static double SLIDE_HANG_LOW_IN = 0.8;
 
     public static int ARM_HANG_LOW_LOCK_TICKS = 2020;
@@ -118,15 +119,18 @@ public class RotatingSlide {
 
     public void update(){
         if (isHorizontal()) {
+            Log.i("horizntalLimit 3", "update function: true");
             slide.changeHorizontalSetting(true);
         } else{
+            Log.i("horizntalLimit 3", "update function: false");
             slide.changeHorizontalSetting(false);
         }
     }
 
     public boolean isHorizontal(){
-
-        if (arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD && !IS_HANGING) {
+        boolean horizontal = arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD && !IS_HANGING;
+        Log.i("horizntalLimit 3", "isHorizontal function, " + horizontal);
+        if (horizontal) {
             return true;
         } else{
             return false;

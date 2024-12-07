@@ -29,8 +29,9 @@ public class Arm {
     public Arm(){
         RobotCore robotCore = RobotCore.getRobotCore();
         armMotor = robotCore.hardwareMap.get(DcMotorEx.class, RobotConfig.armMotor);
-        armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        /*armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+         */ //Do not reset encoder
         armMotor.setTargetPositionTolerance(TARGET_TOLERANCE);
         armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }

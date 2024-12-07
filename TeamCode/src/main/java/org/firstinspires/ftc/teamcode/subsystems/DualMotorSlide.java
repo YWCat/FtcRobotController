@@ -71,10 +71,12 @@ public class DualMotorSlide {
 
         slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        /*
         slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        */ //Do not reset encoder between runs
 
         PIDFController.PIDCoefficients coefficients = new PIDFController.PIDCoefficients();
         coefficients.kP = kP;
@@ -130,8 +132,8 @@ public class DualMotorSlide {
             */
             if(factor>1.5){
                 factor=1.5;
-            } else if (factor<0.5){
-                factor = 0.5;
+            } else if (factor<0.667){
+                factor = 0.667;
             }
         }
         Log.v("Slide Sync", ""+factor);
@@ -244,12 +246,12 @@ public class DualMotorSlide {
             } else {
                 this.powerCap = Math.max(this.powerCap, -1 * PID_RANGE);
             }
-            pidfController.setOutputBounds(-1.0 * this.powerCap, 1.0 * this.powerCap);
         }
 
         public boolean run(@NonNull TelemetryPacket p) {
 
             if (!runStarted) {
+                pidfController.setOutputBounds(-1.0 * this.powerCap, 1.0 * this.powerCap);
                 pidfController.reset();
                 pidfController.targetPosition = ticksToInches(targetPosition);
                 Log.v("Slide Action", "target pos ticks = " + targetPosition + " inches = "+ ticksToInches(targetPosition));
@@ -323,6 +325,7 @@ public class DualMotorSlide {
             targetReached = false; //slide not in transition state
             slideMotorL.setPower(power);
             slideMotorR.setPower(power);
+            Log.i("Slide Power", String.format("set flat motor power: %4.2f ", power));
             return false;
         }
 
@@ -366,7 +369,7 @@ public class DualMotorSlide {
             minPowerDown = 0;
             maxExtension = MAX_HORIZONTAL_LIMIT_TICKS;
         } else {
-            if (getPosition() > 26) {
+            if (getPosition() < 26) {
                 minPowerUp = MIN_POWER_UP_VERTICAL;
             } else {
                 minPowerUp = MIN_POWER_UP_VERTICAL_HIGH;
