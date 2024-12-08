@@ -79,6 +79,8 @@ public class AATele extends LinearOpMode{
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+        Action openSpecimenInit = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
+        loopUpdater.addAction(openSpecimenInit);
 
         waitForStart();
         runtime.reset();
