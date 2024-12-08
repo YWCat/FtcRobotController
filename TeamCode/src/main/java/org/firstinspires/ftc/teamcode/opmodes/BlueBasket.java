@@ -26,10 +26,10 @@ public final class BlueBasket extends LinearOpMode {
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
 
-    static double beginX = pos_multiplier*(botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = -Math.PI*pos_multiplier;
+    static double beginX = pos_multiplier*(botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = 0;
     static double chamberX = beginX, chamberY = pos_multiplier*(18+botWidthHalf), chamberH = beginH;
-    static double firstSample_X = pos_multiplier*39.5, Sample_Y = pos_multiplier*18.375, Sample_H = -Math.PI*pos_multiplier; //X:38
-    static double basket_X = pos_multiplier*56, basket_Y = pos_multiplier*52, basket_H = Math.PI+(-Math.PI/4*pos_multiplier);
+    static double firstSample_X = pos_multiplier*39.5, Sample_Y = pos_multiplier*18.375, Sample_H = 0; //X:38
+    static double basket_X = pos_multiplier*56, basket_Y = pos_multiplier*52, basket_H = (3*Math.PI/4)+(-Math.PI/2*pos_multiplier);
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
@@ -39,8 +39,8 @@ public final class BlueBasket extends LinearOpMode {
         Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*22.5), Sample_Y-pos_multiplier*4.5, Sample_H);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
         Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*1, basket_Y-pos_multiplier*2, basket_H);
-        Pose2d basketBackPose = new Pose2d(pos_multiplier*48,pos_multiplier*48,Math.PI*pos_multiplier);
-        Pose2d basketBack2Pose = new Pose2d(pos_multiplier*42, pos_multiplier*42, pos_multiplier* Math.PI);
+        Pose2d basketBackPose = new Pose2d(pos_multiplier*48,pos_multiplier*48,0);
+        Pose2d basketBack2Pose = new Pose2d(pos_multiplier*42, pos_multiplier*42, 0);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         RobotCore robotCore  = new RobotCore(this);
@@ -130,7 +130,7 @@ public final class BlueBasket extends LinearOpMode {
         retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
         Action wait = sampleIntake.getWaitAction(1000, true);
         Action FstSampleToBasket = drive.actionBuilder(drive.pose)
-                .splineToLinearHeading(basketPose, Math.PI)
+                .splineToLinearHeading(basketPose, 0)
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
@@ -154,8 +154,8 @@ public final class BlueBasket extends LinearOpMode {
         wristIntake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_INTAKE_ROLLER, true);
         Action BasketToSndSample = drive.actionBuilder(drive.pose)
                 .splineToLinearHeading(basketBackPose, Math.PI)
-                .splineToLinearHeading(basketBack2Pose, Math.PI/2)
-                .splineToLinearHeading(sndSamplePose, Math.PI/2)
+                .splineToLinearHeading(basketBack2Pose, 0)
+                .splineToLinearHeading(sndSamplePose, -Math.PI/2)
                 .build();
         Actions.runBlocking(
                 new ParallelAction(
@@ -185,7 +185,7 @@ public final class BlueBasket extends LinearOpMode {
         retractSlide = rotatingSlide.slide.getSlideToPosition(10, 1, true);
         wait = sampleIntake.getWaitAction(1000, true);
         Action SndSampleToBasket = drive.actionBuilder(drive.pose)
-                .splineToLinearHeading(basket2Pose, Math.PI)
+                .splineToLinearHeading(basket2Pose, 0)
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
@@ -206,8 +206,8 @@ public final class BlueBasket extends LinearOpMode {
 
         // Basket to low rung ascend
         Action goToAscent = drive.actionBuilder(drive.pose)
-                .splineToSplineHeading(new Pose2d(pos_multiplier*35,pos_multiplier*(0),Math.PI/2), -Math.PI/2)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*18,pos_multiplier*(-5),0), 0)
+                .splineToSplineHeading(new Pose2d(pos_multiplier*35,pos_multiplier*(0),-Math.PI/2), Math.PI/2)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*18,pos_multiplier*(-5),Math.PI), Math.PI)
                 .build();
         armToIntakeDip = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_BASKET_TICKS+500, true);
         raiseSlide = rotatingSlide.slide.getSlideToPosition(5, 1,  true);
