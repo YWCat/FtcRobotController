@@ -38,7 +38,7 @@ public final class RedBasket extends LinearOpMode {
         Pose2d sndSamplePose = new Pose2d(firstSample_X+(pos_multiplier*11.5), Sample_Y-pos_multiplier*3, Sample_H);
         Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*22.5), Sample_Y-pos_multiplier*4.5, Sample_H);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
-        Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*1, basket_Y-pos_multiplier*2, basket_H);
+        Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*2, basket_Y-pos_multiplier*3, basket_H);
         Pose2d basketBackPose = new Pose2d(pos_multiplier*48,pos_multiplier*48,Math.PI*pos_multiplier);
         Pose2d basketBack2Pose = new Pose2d(pos_multiplier*42, pos_multiplier*42, pos_multiplier* Math.PI);
 

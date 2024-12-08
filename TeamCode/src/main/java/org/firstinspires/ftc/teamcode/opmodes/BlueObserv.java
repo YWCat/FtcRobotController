@@ -20,14 +20,15 @@ import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 @Config
 @Autonomous(name="BlueObserv", group="Autonomous")
+@Disabled
 public final class BlueObserv extends LinearOpMode {
     static int pos_multiplier = 1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
 
     static double beginX = pos_multiplier*(-24), beginY = pos_multiplier*(-botLengthHalf+72), beginH = 0;
-    static double chamberX = pos_multiplier*(-2-botLengthHalf), chamberY = pos_multiplier*(19+botWidthHalf), chamberH = beginH;
-    static double firstSample_X = -55*pos_multiplier, Sample_Y = 13*pos_multiplier, Sample_H = 0; //X:38
+    static double chamberX = pos_multiplier*(-1-botLengthHalf), chamberY = pos_multiplier*(19+botWidthHalf), chamberH = beginH;
+    static double firstSample_X = -55*pos_multiplier, Sample_Y = 12*pos_multiplier, Sample_H = 0; //X:38
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -47,38 +48,38 @@ public final class BlueObserv extends LinearOpMode {
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 0.4,  true);
+        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1,  true);
         Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.2, true);
         //Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
         Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
         // Drive actions
         Action beginToChamber =  drive.actionBuilder(beginPose)
-                .setTangent(Math.PI/2)
-                .splineToConstantHeading(new Vector2d(chamberX,chamberY),Math.PI/2)
+                .setTangent(-Math.PI/2)
+                .splineToConstantHeading(new Vector2d(chamberX,chamberY),-Math.PI/2)
                 .build();
 
         Action goFwdABit = drive.actionBuilder(chamberPose)
-                .setTangent(Math.PI/2)
+                .setTangent(-Math.PI/2)
                 .lineToY(chamberY-(1*pos_multiplier))
                 .build();
 
         Action chamberToObserv = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
                 .lineToY(pos_multiplier*(27+3.75))
-                .splineToLinearHeading(new Pose2d(-35*pos_multiplier, 36*pos_multiplier, Math.PI), -Math.PI/2)
-                .splineToSplineHeading(new Pose2d(-56*pos_multiplier,Sample_Y,Math.PI), Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-36*pos_multiplier, 36*pos_multiplier, Math.PI), -Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-56*pos_multiplier,Sample_Y,0), Math.PI/2)
                 .setTangent(-Math.PI/2)
                 .lineToY(60*pos_multiplier)
                 .setTangent(Math.PI/2)
                 .lineToY(12*pos_multiplier)
-                .splineToLinearHeading(new Pose2d(-67*pos_multiplier, Sample_Y,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-67*pos_multiplier, Sample_Y,0),Math.PI/2)
                 .setTangent(Math.PI/2)
                 .lineToY(60*pos_multiplier)
                 .setTangent(Math.PI/2)
                 .lineToY(12*pos_multiplier)
-                .splineToLinearHeading(new Pose2d(-76.5*pos_multiplier, Sample_Y,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-76*pos_multiplier, Sample_Y,0),Math.PI/2)
                 .setTangent(Math.PI/2)
-                .lineToY(67*pos_multiplier)
+                .lineToY(66.5*pos_multiplier)
                 .build();
 
         waitForStart();

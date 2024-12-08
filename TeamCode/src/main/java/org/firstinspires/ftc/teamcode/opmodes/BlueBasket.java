@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -21,6 +22,7 @@ import android.util.Log;
 
 @Config
 @Autonomous(name="BlueBasket", group="Autonomous")
+@Disabled
 public final class BlueBasket extends LinearOpMode {
     static int pos_multiplier = 1;
     static double botWidthHalf = 7.25;
@@ -38,7 +40,7 @@ public final class BlueBasket extends LinearOpMode {
         Pose2d sndSamplePose = new Pose2d(firstSample_X+(pos_multiplier*11.5), Sample_Y-pos_multiplier*3, Sample_H);
         Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*22.5), Sample_Y-pos_multiplier*4.5, Sample_H);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
-        Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*1, basket_Y-pos_multiplier*2, basket_H);
+        Pose2d basket2Pose = new Pose2d(basket_X-pos_multiplier*2, basket_Y-pos_multiplier*3, basket_H);
         Pose2d basketBackPose = new Pose2d(pos_multiplier*48,pos_multiplier*48,0);
         Pose2d basketBack2Pose = new Pose2d(pos_multiplier*42, pos_multiplier*42, 0);
 
@@ -67,11 +69,11 @@ public final class BlueBasket extends LinearOpMode {
 
         // Drive actions
         Action beginToChamber = drive.actionBuilder(beginPose)
-                .setTangent(Math.PI/2)
+                .setTangent(-Math.PI/2)
                 .lineToY(chamberY)
                 .build();
         Action ChamberToFstSample = drive.actionBuilder(chamberPose)
-                .setTangent(Math.PI/2)
+                .setTangent(-Math.PI/2)
                 .lineToY(chamberY+(pos_multiplier*7))
                 .splineToLinearHeading(fstSamplePose, pos_multiplier*-Math.PI/2)
                 .build();
