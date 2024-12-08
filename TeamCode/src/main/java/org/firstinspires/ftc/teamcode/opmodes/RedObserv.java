@@ -78,7 +78,7 @@ public final class RedObserv extends LinearOpMode {
                 .lineToY(12*pos_multiplier)
                 .splineToLinearHeading(new Pose2d(-76.5*pos_multiplier, Sample_Y,0),-Math.PI/2)
                 .setTangent(Math.PI/2)
-                .lineToY(67*pos_multiplier)
+                .lineToY(66.5*pos_multiplier)
                 .build();
 
         waitForStart();
