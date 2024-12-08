@@ -236,7 +236,7 @@ public class AATele extends LinearOpMode{
                         waitForLB1,
                         raiseSlidePrep, raiseArmPrep,
                         waitForLB2,
-                        new ParallelAction(raiseArmSwing, lowerSlideSwing), powerMotorsHoldLock, lowerArmLock, new SleepAction(2), lowerSlideLock
+                        new ParallelAction(raiseArmSwing, new SequentialAction(new SleepAction(0.5), lowerSlideSwing)), powerMotorsHoldLock, lowerArmLock, new SleepAction(2), lowerSlideLock
                         );
                 loopUpdater.addAction(hangSequence);
             }
