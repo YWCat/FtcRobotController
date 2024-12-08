@@ -40,7 +40,7 @@ public class RotatingSlide {
     public static double SLIDE_HANG_HIGH_PREP_IN = 20.0;
     public static int ARM_HANG_HIGH_PREP_TICKS = 2270;
     public static int ARM_HANG_HIGH_SWING_TICKS = 300;
-    public static double SLIDE_HANG_HIGH_SWING_IN = 1.5;
+    public static double SLIDE_HANG_HIGH_SWING_IN = 6;
     public static int ARM_HANG_HIGH_LOCK_TICKS = -240;
     public static double SLIDE_HANG_HIGH_LOCK_IN = -0.3;
 

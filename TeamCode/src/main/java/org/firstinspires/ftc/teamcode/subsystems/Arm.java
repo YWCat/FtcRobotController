@@ -68,6 +68,7 @@ public class Arm {
                 armMotor.setVelocity(UP_VELOCITY);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
+                Log.i("armMotor", "start running action with target position = " + targetPosition );
                 return true;
             }
             else{

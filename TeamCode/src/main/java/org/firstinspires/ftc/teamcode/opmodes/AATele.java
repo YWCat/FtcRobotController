@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -208,6 +209,10 @@ public class AATele extends LinearOpMode{
             }
             if(smartGamepad1.b_pressed()){
                 rotatingSlide.updateHangStatus(true);
+                rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 Action flipWristAway = sampleIntake.getTurnWristAction(SampleIntake.WRIST_HANG_ROLLER, false);
                 Action lowerArmLow = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_LOW_TICKS, true);
                 Action lowerSlideLowFirst = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_FIRST_IN, 0.5, true);
@@ -231,7 +236,7 @@ public class AATele extends LinearOpMode{
                         waitForLB1,
                         raiseSlidePrep, raiseArmPrep,
                         waitForLB2,
-                        new ParallelAction(raiseArmSwing, lowerSlideSwing), powerMotorsHoldLock, new SleepAction(1),  lowerArmLock, lowerSlideLock
+                        new ParallelAction(raiseArmSwing, lowerSlideSwing), powerMotorsHoldLock, lowerArmLock, new SleepAction(2), lowerSlideLock
                         );
                 loopUpdater.addAction(hangSequence);
             }
@@ -365,14 +370,9 @@ public class AATele extends LinearOpMode{
             //experimental features
 
             if(smartGamepad2.left_trigger_pressed()){
-                rotatingSlide.updateHangStatus(true);
-                Action lowerSlideLowFirst = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_FIRST_IN, 0.5, true);
-                Action lowerSlideLowSecond = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_IN, 0.8, true);
-                loopUpdater.addAction(new SequentialAction(
-                        lowerSlideLowFirst,
-                        new SleepAction(2),
-                        lowerSlideLowSecond
-                ));
+                sampleIntake.manualMoveRoller(SampleIntake.OUTTAKE_POWER_ROLLER);
+            } else if (smartGamepad2.left_trigger_released()){
+                sampleIntake.manualMoveRoller(0);
             }
 
 
