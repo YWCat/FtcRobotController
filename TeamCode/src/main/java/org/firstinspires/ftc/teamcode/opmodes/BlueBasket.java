@@ -20,9 +20,9 @@ import org.firstinspires.ftc.teamcode.utility.RobotCore;
 import android.util.Log;
 
 @Config
-@Autonomous(name="RedBasket", group="Autonomous")
-public final class RedBasket extends LinearOpMode {
-    static int pos_multiplier = -1;
+@Autonomous(name="BlueBasket", group="Autonomous")
+public final class BlueBasket extends LinearOpMode {
+    static int pos_multiplier = 1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
 
@@ -90,10 +90,10 @@ public final class RedBasket extends LinearOpMode {
         // strafe to chamber and deposit specimen
         Actions.runBlocking(
                 new SequentialAction(
-                    new ParallelAction(
-                            beginToChamber,
-                            new SequentialAction(closeSpecimen, raiseSlide)
-                    ),
+                        new ParallelAction(
+                                beginToChamber,
+                                new SequentialAction(closeSpecimen, raiseSlide)
+                        ),
                         depositSlide,
                         openSpecimen
                 )
@@ -135,12 +135,12 @@ public final class RedBasket extends LinearOpMode {
         Actions.runBlocking(
                 new SequentialAction(
                         new ParallelAction(
-                            FstSampleToBasket,
-                            armToOut,
-                            new SequentialAction(
-                                    wait,
-                                    outtakeSlide
-                            )
+                                FstSampleToBasket,
+                                armToOut,
+                                new SequentialAction(
+                                        wait,
+                                        outtakeSlide
+                                )
                         ),
                         rollerOut,
                         wristUp,

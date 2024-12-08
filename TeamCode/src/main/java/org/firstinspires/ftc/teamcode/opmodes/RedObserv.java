@@ -26,13 +26,14 @@ public final class RedObserv extends LinearOpMode {
     static double botLengthHalf = 7.5;
 
     static double beginX = pos_multiplier*(-24), beginY = pos_multiplier*(-botLengthHalf+72), beginH = -Math.PI*pos_multiplier;
-    static double chamberX = pos_multiplier*(-2-botLengthHalf), chamberY = pos_multiplier*(15.5+botWidthHalf), chamberH = beginH;
+    static double chamberX = pos_multiplier*(-2-botLengthHalf), chamberY = pos_multiplier*(19+botWidthHalf), chamberH = beginH;
     static double firstSample_X = -55*pos_multiplier, Sample_Y = 13*pos_multiplier, Sample_H = 0; //X:38
 
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
         Pose2d chamberPose = new Pose2d(chamberX, chamberY,chamberH);
+        Pose2d chamberPoseFwd = new Pose2d(chamberX, chamberY+(pos_multiplier*-0.5),chamberH);
         Pose2d fstSamplePose = new Pose2d(firstSample_X, Sample_Y, Sample_H);
         Pose2d sndSamplePose = new Pose2d(firstSample_X+(pos_multiplier*12), Sample_Y, Sample_H);
         Pose2d thdSamplePose = new Pose2d(firstSample_X+(pos_multiplier*9.6), Sample_Y, Sample_H);
@@ -56,11 +57,16 @@ public final class RedObserv extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(chamberX,chamberY),Math.PI/2)
                 .build();
 
+        Action goFwdABit = drive.actionBuilder(chamberPose)
+                .setTangent(Math.PI/2)
+                .lineToY(chamberY-(1*pos_multiplier))
+                .build();
+
         Action chamberToObserv = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
                 .lineToY(pos_multiplier*(27+3.75))
                 .splineToLinearHeading(new Pose2d(-35*pos_multiplier, 36*pos_multiplier, 0), Math.PI/2)
-                .splineToSplineHeading(new Pose2d(-55*pos_multiplier,Sample_Y,0), -Math.PI/2)
+                .splineToSplineHeading(new Pose2d(-56*pos_multiplier,Sample_Y,0), -Math.PI/2)
                 .setTangent(-Math.PI/2)
                 .lineToY(60*pos_multiplier)
                 .setTangent(Math.PI/2)
@@ -84,6 +90,7 @@ public final class RedObserv extends LinearOpMode {
                                 beginToChamber,
                                 new SequentialAction(closeSpecimen, raiseSlide)
                         ),
+                        goFwdABit,
                         depositSlide,
                         openSpecimen
                 )
