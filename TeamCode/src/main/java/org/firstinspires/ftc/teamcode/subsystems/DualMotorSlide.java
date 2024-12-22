@@ -24,6 +24,7 @@ public class DualMotorSlide {
     //Hardware: 2 lift motors
     public DcMotorEx slideMotorL;
     public DcMotorEx slideMotorR;
+    private RotatingSlide rotatingSlide;
     private static double savedSlideMotorLEncoder;
     private static double savedSlideMotorREncoder;
     private static final double TICKS_PER_REV = 537.7; //312 RPM
@@ -33,7 +34,8 @@ public class DualMotorSlide {
 
     private final int MAX_VERTICAL_LIMIT_TICKS = 4300;     // Hard limit: 283mm * 3 converted to ticks: 4543. Also note slide cannot be fully retracted by 1cm.
     private final int MAX_HORIZONTAL_LIMIT_TICKS = 2090;   // to avoid exceed 42 inch
-    public int maxExtension = MAX_VERTICAL_LIMIT_TICKS;
+    private final double MAX_HORIZONTAL_LIMIT_IN = 15.38;
+    public int effectiveMaxExtension = MAX_VERTICAL_LIMIT_TICKS;
 
     public static double MIN_POWER_UP_VERTICAL_HIGH = 0.5;
     public static double MIN_POWER_UP_VERTICAL = 0.3;
@@ -63,8 +65,9 @@ public class DualMotorSlide {
     public SetMotorPower prevSetMotorAction = null;
 
     //TODO: fine-tune LEVEL-HT values.
-    public DualMotorSlide(){
+    public DualMotorSlide(RotatingSlide rotatingSlide){
         // Set up Left and Right motors
+        this.rotatingSlide = rotatingSlide;
         RobotCore robotCore = RobotCore.getRobotCore();
         slideMotorL = robotCore.hardwareMap.get(DcMotorEx.class, RobotConfig.slideMotorL);
         slideMotorR = robotCore.hardwareMap.get(DcMotorEx.class, RobotConfig.slideMotorR);
@@ -90,6 +93,20 @@ public class DualMotorSlide {
         this.TARGET_TOLERANCE_INCH = tol;
     }
 
+    public boolean getExceedsHorizontalLimit(){
+        int motorLPosition = slideMotorL.getCurrentPosition();
+        int motorRPosition = slideMotorR.getCurrentPosition();
+        double effectiveAngle =  rotatingSlide.getArmEffectiveAngle();
+        if(effectiveAngle==0) {
+            effectiveAngle = 0.00001;
+        }
+        double calculatedEME= inchToTicks(MAX_HORIZONTAL_LIMIT_IN / Math.cos((90- effectiveAngle)*Math.PI/180));
+        boolean exceeds = (motorLPosition>= effectiveMaxExtension || motorRPosition>= effectiveMaxExtension);
+        Log.i("horizontal limit", "slideL: " + motorLPosition + "slideR " + motorRPosition);
+        Log.i("horizontal limit", "angle: " + effectiveAngle);
+        Log.i("horizontal limit",  " limit1: " + effectiveMaxExtension + "limit2: "+calculatedEME+ " exceeds: " + exceeds);
+        return exceeds;
+    }
     public double mapPower(double power){
         //Log.i("mapPower", String.format("power %4.2f, minPowerUp %4.2f, minPowerDown %4.2f", power, minPowerUp, minPowerDown));
         if (Math.abs(power) < 10e-6){
@@ -101,15 +118,16 @@ public class DualMotorSlide {
         } else if (power < 0 && power >= minPowerDown) {
             //Log.i("mapPower", "else if 2");
             return minPowerDown;
-        } else if (slideMotorL.getCurrentPosition()>= maxExtension || slideMotorR.getCurrentPosition()>= maxExtension){
+        } else if (getExceedsHorizontalLimit()){
             if (power > 0) {
-                //Log.i("mapPower", "else if / if");
+                Log.i("mapPower", "exceeds horizontal limit");
                 return getHoldPower();
             }
         }
         //Log.i("mapPower", "return power no change");
         return power;
     }
+
     public void updatePowerWithEncoderDiff(boolean up){
 
         double factor = 1.0;
@@ -144,15 +162,15 @@ public class DualMotorSlide {
             powerR *= factor;
         }
     }
-
     public void adjustLift(double velocityRatio){
         Log.i("Slide Power", "targetReached set to True at 1");
         targetReached = true;
         double velocity = MAX_VELOCITY * velocityRatio;
-        if (getLeftEncoder() < maxExtension || velocityRatio < 0){
+        if (getLeftEncoder() < effectiveMaxExtension || velocityRatio < 0){
             slideMotorL.setVelocity(velocity);
             slideMotorR.setVelocity(velocity);
         } else {
+            Log.i("slide power", "horizontal limit exceeded");
             holdPosition();
         }
     }
@@ -222,6 +240,7 @@ public class DualMotorSlide {
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+
     public final class SlideToPosition implements Action {
         private boolean cancelled;
         private double powerCap = 1;
@@ -269,10 +288,6 @@ public class DualMotorSlide {
                     double powerFromPIDF = pidfController.update(measuredPositionL);
                     //if you want to add a constant upward power pls adjust kS instead
                     Log.v("Slide Power Sync", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
-                    //telemetry.addData("Target pos", pidfController.getTargetPosition());
-                    //telemetry.addData("Measure pos", measuredPosition);
-                    //telemetry.addData("slidePower", powerFromPIDF);
-                    //telemetry.update();
                     powerFromPIDF = mapPower(powerFromPIDF);
                     powerL = powerFromPIDF;
                     powerR = powerFromPIDF;
@@ -361,27 +376,35 @@ public class DualMotorSlide {
         }
     }
 
-    public void changeHorizontalSetting(boolean horizontal) {
-        Log.i("HorizontalLimit 1", "from dualMotorSlide, " + horizontal);
-        slideIsHorizontal = horizontal;
-        if (horizontal) {
+    public void changeHorizontalSetting() {
+        double effectiveAngle = Math.abs(rotatingSlide.getArmEffectiveAngle());
+        if(effectiveAngle == 0){ //avoid divide by zero
+            effectiveAngle = 0.001;
+        }
+        effectiveMaxExtension = inchToTicks(MAX_HORIZONTAL_LIMIT_IN / Math.cos((90- effectiveAngle)*Math.PI/180)); //math.cos uses radians so convert here
+        if(effectiveMaxExtension > MAX_VERTICAL_LIMIT_TICKS) {
+            effectiveMaxExtension = MAX_VERTICAL_LIMIT_TICKS;
+        }
+        //Log.i("max extension under horizontal limit", "angle: " + effectiveAngle + "max ex:" + ticksToInches(effectiveMaxExtension)) ;
+        slideIsHorizontal = effectiveAngle > rotatingSlide.getHorizontalThresholdAngle();
+        if (slideIsHorizontal) {
             minPowerUp = 0;
             minPowerDown = 0;
-            maxExtension = MAX_HORIZONTAL_LIMIT_TICKS;
+            //Log.i("HorizontalLimit 1", "from dualMotorSlide, is horizontal");
         } else {
+            //Log.i("HorizontalLimit 1", "from dualMotorSlide, is NOT horizontal");
             if (getPosition() < 26) {
                 minPowerUp = MIN_POWER_UP_VERTICAL;
             } else {
                 minPowerUp = MIN_POWER_UP_VERTICAL_HIGH;
             }
             minPowerDown = MIN_POWER_DOWN_VERTICAL;
-            maxExtension = MAX_VERTICAL_LIMIT_TICKS;
         }
     }
 
     public double getHoldPower() {
         if (slideIsHorizontal) {
-            Log.i("holdPower", "horizontal, 0");
+            Log.i("holdPower", "0");
             return 0;
         } else {
             if (getPosition() > 26) {

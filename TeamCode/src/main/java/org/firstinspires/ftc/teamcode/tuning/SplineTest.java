@@ -23,7 +23,7 @@ public final class SplineTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         claw = hardwareMap.get(Servo.class, RobotConfig.sampleServo);
-        Arm arm = new Arm();
+        RotatingSlide rotatingSlide = new RotatingSlide();
         //telemetry.addData("Motor Value", armMotor.getCurrentPosition());
 
         Pose2d beginPose = new Pose2d(23.5/3, -62.5, Math.PI/2);
@@ -33,8 +33,8 @@ public final class SplineTest extends LinearOpMode {
             Action driveToChamber = drive.actionBuilder(beginPose)
                     .lineToY(-23.5-8)
                     .build();
-            Action preChamber = arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP_TICKS, true);
-            Action lowerSlide = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
+            Action preChamber = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_CHAMBER_PREP_TICKS, true);
+            Action lowerSlide = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
             //Action placeChamber = arm.getPlaceChamber();
             waitForStart();
             Actions.runBlocking(

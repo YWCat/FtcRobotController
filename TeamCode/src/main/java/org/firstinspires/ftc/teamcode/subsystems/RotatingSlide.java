@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 
 @Config
@@ -26,22 +27,30 @@ public class RotatingSlide {
     //BASKET
     public static final double SLIDE_BASKET_IN = 29.5;
     public static  int ARM_BASKET_TICKS = -280; //ticks
+    public static double ARM_BASKET_DEG = -9.363; //ticks
     public static int ARM_AUTO_BASKET_TICKS = 380;
+    public static double ARM_AUTO_BASKET_DEG = 12.707;
 
     //HANG
     public static  int SLIDE_HANG_PREP_TICKS = 1800;
     public static  int ARM_HANG_PREP_TICKS = 820;
+    public static double ARM_HANG_PREP_DEG = 27.420;
     public static int ARM_HANG_LOW_TICKS = 2600;
+    public static double ARM_HANG_LOW_DEG = 86.940;
     public static double SLIDE_HANG_LOW_FIRST_IN = 7;
     public static double SLIDE_HANG_LOW_IN = 0.8;
 
     public static int ARM_HANG_LOW_LOCK_TICKS = 2020;
+    public static double ARM_HANG_LOW_LOCK_DEG = 67.545;
     public static double SLIDE_HANG_LOW_LOCK_IN = 0.0;
     public static double SLIDE_HANG_HIGH_PREP_IN = 20.0;
     public static int ARM_HANG_HIGH_PREP_TICKS = 2270;
+    public static double ARM_HANG_HIGH_PREP_DEG = 75.905;
     public static int ARM_HANG_HIGH_SWING_TICKS = 300;
+    public static double ARM_HANG_HIGH_SWING_DEG =10.032;
     public static double SLIDE_HANG_HIGH_SWING_IN = 6;
     public static int ARM_HANG_HIGH_LOCK_TICKS = -240;
+    public static double ARM_HANG_HIGH_LOCK_DEG = -8.025;
     public static double SLIDE_HANG_HIGH_LOCK_IN = -0.3;
 
 
@@ -53,15 +62,14 @@ public class RotatingSlide {
     public static  int SLIDE_RETRACT = 0;
     public static  int ARM_VERTICAL_POS = 0;
     public static  int ARM_RETRACT = ARM_VERTICAL_POS;
-
-    public static int ARM_HORIZONTAL_THRESHOLD = 1300;
+    public static double ARM_HORIZONTAL_THRESHOLD_DEG = 45.0;
 
 
 
 
     public RotatingSlide(){
-        arm = new Arm();
-        slide = new DualMotorSlide();
+        arm = new Arm(this);
+        slide = new DualMotorSlide(this);
         IS_HANGING = false;
     }
 
@@ -96,9 +104,9 @@ public class RotatingSlide {
     Retracts the slide to 0 and makes the arm vertical
      */
     public Action retractSlide(){
-        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, false);
-        Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, false);
-        Action retract = new SequentialAction(retractSlide, retractArm);
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
+        Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
+        Action retract = new ParallelAction(retractSlide, retractArm);
         Log.i("UpdateActions", "Added retract action");
         return retract;
     }
@@ -110,7 +118,7 @@ public class RotatingSlide {
             retractSlide = slide.getSlideToPosition(slide.getLeftEncoder(),1,  false);
         }
         if(!moveArm){
-            retractArm = arm.getArmToPosition(arm.getMotorPosition(),false);
+            retractArm = arm.getArmToPosition(arm.getMotorPositionTicks(),false);
         }
         Action retract = new SequentialAction(retractSlide, retractArm);
         Log.i("UpdateActions", "Added retract action, moveSlide:" + moveSlide + " moveArm: " + moveArm);
@@ -118,18 +126,26 @@ public class RotatingSlide {
     }
 
     public void update(){
-        if (isHorizontal()) {
-            Log.i("horizntalLimit 3", "update function: true");
-            slide.changeHorizontalSetting(true);
-        } else{
-            Log.i("horizntalLimit 3", "update function: false");
-            slide.changeHorizontalSetting(false);
+        slide.changeHorizontalSetting();
+    }
+    public double getArmEffectiveAngle(){
+        double angle = arm.getMotorPositionAngle();
+        if(IS_HANGING){
+            angle = 0;
         }
+        return angle;
+    }
+    public boolean getSlideExceedsHorizontalLimit(){
+        return slide.getExceedsHorizontalLimit();
+    }
+    public double getHorizontalThresholdAngle(){
+        return ARM_HORIZONTAL_THRESHOLD_DEG;
     }
 
     public boolean isHorizontal(){
-        boolean horizontal = arm.getMotorPosition() > ARM_HORIZONTAL_THRESHOLD && !IS_HANGING;
-        Log.i("horizntalLimit 3", "isHorizontal function, " + horizontal);
+        boolean horizontal = getArmEffectiveAngle() > ARM_HORIZONTAL_THRESHOLD_DEG;
+        //boolean horizontal = arm.getMotorPositionAngle() > ARM_HORIZONTAL_THRESHOLD_DEG && !IS_HANGING;
+        Log.i("horizontalLimit 3", "isHorizontal function, " + horizontal);
         if (horizontal) {
             return true;
         } else{

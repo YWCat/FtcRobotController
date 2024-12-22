@@ -6,14 +6,14 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 public class Arm {
-    DcMotorEx armMotor;
+    private DcMotorEx armMotor;
+    private RotatingSlide rotatingSlide;
     public armToPosition prevMoveArmAction = null;
     private static final double TICKS_PER_REV = 384.5; //
     private static final int TARGET_TOLERANCE = 70; //units: ticks
@@ -26,7 +26,8 @@ public class Arm {
     Refers to the arm that rotates the slides :)
      */
 
-    public Arm(){
+    public Arm(RotatingSlide rotatingSlide){
+        this.rotatingSlide = rotatingSlide;
         RobotCore robotCore = RobotCore.getRobotCore();
         armMotor = robotCore.hardwareMap.get(DcMotorEx.class, RobotConfig.armMotor);
         /*armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -63,12 +64,18 @@ public class Arm {
         }
         public boolean run(@NonNull TelemetryPacket p){
             if(!runStarted){
+                if(rotatingSlide.getSlideExceedsHorizontalLimit() && targetPosition>armMotor.getCurrentPosition()){
+                    armMotor.setVelocity(0);
+                    Log.i("arm Horizontal Limit","Horizontal limit exceeded, stopping action before start");
+                    return false;
+                }
                 armMotor.setTargetPosition(targetPosition);
                 armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 armMotor.setVelocity(UP_VELOCITY);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
                 Log.i("armMotor", "start running action with target position = " + targetPosition );
+
                 return true;
             }
             else{
@@ -79,8 +86,16 @@ public class Arm {
                 boolean timeOut = (System.currentTimeMillis()-startTime >= timeout);
                 Log.i("armMotor RobotActions", "motor pos: " + currentPosition + "target pos: " + targetPosition + "velocity: " + currentVelocity + "reached? = " + targetReached);
                 //if(motorBusy && !timeOut && !cancelled) {
-                if (!targetReached && !timeOut && !cancelled) {
+                if (!targetReached && !timeOut && !cancelled ) {
                     Log.i("armMotor RobotActions", "target not reached and not cancelled");
+                    /*
+                    if horizontal limit exceeded, set vel to zero and cancel action
+                     */
+                    if(rotatingSlide.getSlideExceedsHorizontalLimit()  && targetPosition>armMotor.getCurrentPosition()){
+                        armMotor.setVelocity(0);
+                        Log.i("arm Horizontal Limit","Horizontal limit exceeded, stopping action");
+                        return false;
+                    }
                     return true;
                 } else {
                     //if (!motorBusy){
@@ -121,15 +136,21 @@ public class Arm {
             return new armToPosition(pos);
         }
     }
+    public armToPosition getArmToPosition(double angle, boolean forceNew){
+        return getArmToPosition(angleToTicks(angle), forceNew);
+    }
 
-    public int getMotorPosition(){
+    public int getMotorPositionTicks(){
         return armMotor.getCurrentPosition();
+    }
+    public double getMotorPositionAngle(){
+        return ticksToAngle(armMotor.getCurrentPosition());
     }
 
 
     public double ticksToAngle(int ticks){
         return ((double) ticks / TICKS_PER_REV / 28 * 360); //28 = worm gear gear ratio
-    } // 1 degree is around 30 ticks
+    } // 1 degree is around 30 ticks, 90 degrees is 2690 something.
 
     public int angleToTicks(double angle){
         return (int) (angle / 360 * 28 * TICKS_PER_REV); //28 = worm gear gear ratio
