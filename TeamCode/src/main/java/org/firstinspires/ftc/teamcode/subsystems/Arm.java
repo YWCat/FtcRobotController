@@ -6,7 +6,9 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
@@ -23,6 +25,15 @@ public class Arm {
     private static final double HOLD_POWER = 0;
 
     /*
+    default pid:
+    p = 10
+    i = 0.05
+    d = 0
+    f = 0
+    alg = LegacyPID
+     */
+
+    /*
     Refers to the arm that rotates the slides :)
      */
 
@@ -35,6 +46,9 @@ public class Arm {
          */ //Do not reset encoder
         armMotor.setTargetPositionTolerance(TARGET_TOLERANCE);
         armMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        //armMotor.setPositionPIDFCoefficients(5);
+        //PIDFCoefficients customPID = new PIDFCoefficients(10, 0.05, 0, 0);
+        //armMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_TO_POSITION, customPID);
     }
     public void resetEncoder(){
         armMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -50,17 +64,19 @@ public class Arm {
         private long startTime;
         private boolean cancelled;
         private int targetPosition;
+        private double factor;
         private boolean runStarted;
         private long timeout = 10000;
-        public armToPosition(int pos){
-            changeTarget(pos);
+        public armToPosition(int pos,  double factor){
+            changeTarget(pos, factor);
             Log.i(" Arm RobotActions", "Created new action armToPosition.");
         }
-        public void changeTarget(int pos){
+        public void changeTarget(int pos, double factor){
             targetPosition = pos;
             runStarted = false;
             cancelled = false;
-            Log.i("armMotor changeTarget() called", "motor pos: " + armMotor.getCurrentPosition() + " target pos: " + targetPosition);
+            this.factor = factor;
+            Log.i("armMotor changeTarget() called", "motor pos: " + armMotor.getCurrentPosition() + " target pos: " + targetPosition + "power factor: " +factor);
         }
         public boolean run(@NonNull TelemetryPacket p){
             if(!runStarted){
@@ -71,9 +87,10 @@ public class Arm {
                 }
                 armMotor.setTargetPosition(targetPosition);
                 armMotor.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                armMotor.setVelocity(UP_VELOCITY);
+                armMotor.setVelocity(UP_VELOCITY*factor);
                 startTime = System.currentTimeMillis();
                 runStarted = true;
+                Log.i("arm pid", "" + armMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_TO_POSITION));
                 Log.i("armMotor", "start running action with target position = " + targetPosition );
 
                 return true;
@@ -124,20 +141,26 @@ public class Arm {
         }
     }
 
-    public armToPosition getArmToPosition(int pos, boolean forceNew){
+    public armToPosition getArmToPosition(int pos, double factor, boolean forceNew){
         if(!forceNew){
             if(prevMoveArmAction == null){
-                prevMoveArmAction = new armToPosition(pos);
+                prevMoveArmAction = new armToPosition(pos, factor);
             } else {
-                prevMoveArmAction.changeTarget(pos);
+                prevMoveArmAction.changeTarget(pos, factor);
             }
             return prevMoveArmAction;
         } else{
-            return new armToPosition(pos);
+            return new armToPosition(pos, factor);
         }
     }
+    public armToPosition getArmToPosition(double angle, double factor, boolean forceNew){
+        return getArmToPosition(angleToTicks(angle),  factor,  forceNew);
+    }
     public armToPosition getArmToPosition(double angle, boolean forceNew){
-        return getArmToPosition(angleToTicks(angle), forceNew);
+        return getArmToPosition(angleToTicks(angle),  1,  forceNew);
+    }
+    public armToPosition getArmToPosition(int position, boolean forceNew){
+        return getArmToPosition(position, 1,  forceNew);
     }
 
     public int getMotorPositionTicks(){

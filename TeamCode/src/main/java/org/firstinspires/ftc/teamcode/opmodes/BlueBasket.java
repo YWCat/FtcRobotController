@@ -64,7 +64,7 @@ public final class BlueBasket extends LinearOpMode {
         // intake actions
         Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS-100, true);
         Action wristIntake = sampleIntake.getTurnWristAction(sampleIntake.WRIST_INTAKE_ROLLER, true);
-        Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
+        Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         Action rollerOn = sampleIntake.getStartRollerAction(true, true);
 
         // Drive actions
@@ -129,7 +129,7 @@ public final class BlueBasket extends LinearOpMode {
         Action outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN+2, 1,  true);
         Action rollerOut = sampleIntake.getReverseRollerAction(1800,true);//timeout in ms
         Action wristUp = sampleIntake.getTurnWristAction(0.4, true);
-        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
+        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         Action wait = sampleIntake.getWaitAction(1000, true);
         Action FstSampleToBasket = drive.actionBuilder(drive.pose)
                 .splineToLinearHeading(basketPose, 0)
@@ -253,7 +253,7 @@ public final class BlueBasket extends LinearOpMode {
         outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN+2, 1,  true);
         rollerOut = sampleIntake.getReverseRollerAction(500,true);//timeout in ms
         wristUp = sampleIntake.getTurnWristAction(0.4, true);
-        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
+        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         Actions.runBlocking(
                 new SequentialAction(
                         new ParallelAction(

@@ -23,6 +23,10 @@ public class SpecimenIntake {
         specimenServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.specimenServo);
         specimenServo.setPosition(CLOSE);
     }
+
+    public boolean isClawOpen(){
+        return specimenServo.getPosition() < (OPEN+CLOSE)/2;
+    }
     public final class moveSpecimenIntake implements Action {
         private long startTime;
         private double targetPosition;

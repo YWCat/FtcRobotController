@@ -44,6 +44,7 @@ public class SampleIntake {
     public static  double WRIST_OUTTAKE_CLAW = 0.1;
     public static  double WRIST_INTAKE_ROLLER = 0.9; //0.88; 0.95(too high)
     public static  double WRIST_OUTTAKE_ROLLER = 0.12; //0.07;
+    public static  double WRIST_PREP_OUTTAKE_ROLLER = 0.47; //0.07;
     public static  double WRIST_IDLE_ROLLER = 0.9;
     public static  double WRIST_HANG_ROLLER = 0.0;
     public static  double WRIST_INIT_ROLLER = 0.0;
@@ -151,7 +152,6 @@ public class SampleIntake {
         private double servoPower; //
         private boolean isIntake;
         private boolean runStarted;
-        private long timeout = 1500; //in milliseconds
         private DcMotorSimple.Direction direction;
         public startRoller(boolean intake){
             changeTarget(intake);
@@ -178,11 +178,6 @@ public class SampleIntake {
                     isIntake = false;
                 }
             }
-            if(mode == Mode.ROLLER){
-
-            } else{
-                timeout = 100;
-            }
             runStarted = false;
             cancelled = false;
 
@@ -195,12 +190,11 @@ public class SampleIntake {
                 startTime = System.currentTimeMillis();
                 runStarted = true;
                 return false;
-
         }
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
-            intakeServo.setPower(0);
+            //intakeServo.setPower(0);
             cancelled = true;
-            //Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+            Log.i("intakeServo StartRoller RobotActions", "startRoller action cancelled");
         }
     }
 
@@ -254,7 +248,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            //Log.i("intakeServoStartRoller RobotActions", "action cancelled");
+            Log.i("intakeServo RobotActions", " reverseRoller action cancelled");
         }
     }
 
@@ -290,7 +284,7 @@ public class SampleIntake {
 
         public boolean run (@NonNull TelemetryPacket p){
             intakeServo.setPower(servoPower);
-            //Log.i("intakeServo StopRoller RobotActions", "set power: " + servoPower);
+            Log.i("intakeServo StopRoller RobotActions", "stopRoller set power: " + servoPower);
             intakeServo.setDirection(direction);
             startTime = System.currentTimeMillis();
             runStarted = true;
@@ -300,7 +294,7 @@ public class SampleIntake {
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
             intakeServo.setPower(0);
             cancelled = true;
-            //Log.i("intakeServo StopRoller RobotActions", "action cancelled");
+            Log.i("intakeServo StopRoller RobotActions", "stopMotor action cancelled");
         }
     }
 

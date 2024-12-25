@@ -58,8 +58,9 @@ public class RotatingSlide {
     //INTAKE + IDLE
     public static  int SLIDE_INTAKE_TICKS = 1300;
     public static  int ARM_INTAKE_TICKS = 2400; //in ticks
-    public static  int ARM_AFTER_INTAKE = 2200;
-    public static  int SLIDE_RETRACT = 0;
+    public static double ARM_INTAKE_DEG = 90.0;
+    public static  double ARM_ABOVE_INTAKE_DEG = 75.5;
+    public static  double SLIDE_RETRACT_IN = 0;
     public static  int ARM_VERTICAL_POS = 0;
     public static  int ARM_RETRACT = ARM_VERTICAL_POS;
     public static double ARM_HORIZONTAL_THRESHOLD_DEG = 45.0;
@@ -79,7 +80,7 @@ public class RotatingSlide {
      */
     public Action prepIntake(){
         Action armToIntake = arm.getArmToPosition(RotatingSlide.ARM_INTAKE_TICKS, false);
-        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, false);
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, false);
         Action extendSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_INTAKE_TICKS, 1, true);
         Action toIntake = new SequentialAction(retractSlide, armToIntake, extendSlide/**/);
         return new SequentialAction(
@@ -104,7 +105,7 @@ public class RotatingSlide {
     Retracts the slide to 0 and makes the arm vertical
      */
     public Action retractSlide(){
-        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, true);
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
         Action retract = new ParallelAction(retractSlide, retractArm);
         Log.i("UpdateActions", "Added retract action");
@@ -112,7 +113,7 @@ public class RotatingSlide {
     }
     //lets you customize if you want one thing to not move
     public Action retractSlide(boolean moveSlide, boolean moveArm){
-        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT, 1, false);
+        Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, false);
         Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT,false);
         if(!moveSlide){
             retractSlide = slide.getSlideToPosition(slide.getLeftEncoder(),1,  false);
