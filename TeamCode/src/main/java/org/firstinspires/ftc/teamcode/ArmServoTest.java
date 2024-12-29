@@ -67,11 +67,11 @@ public final class ArmServoTest extends LinearOpMode {
         while (!isStopRequested()) {
             // servo 3: wrist, servo 4: hand
             //claw
-            if (gamepad1.a) { // slightly raised position
+            if (gamepad1.right_bumper) { // slightly raised position
                 servo3.setPosition(0.6);
                 wristUp = true;
             }
-            if(gamepad1.x) { // up: 1, down: 0.5
+            if(gamepad1.left_bumper) { // up: 1, down: 0.5
                 if (!wristUp) {
                     servo3.setPosition(1);
                 }
