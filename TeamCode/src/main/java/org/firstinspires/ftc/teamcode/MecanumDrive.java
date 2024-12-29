@@ -213,6 +213,9 @@ public final class MecanumDrive {
             );
         }
     }
+    public DriveLocalizer getDriveLocalizer(){
+        return new DriveLocalizer();
+    }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         this.pose = pose;

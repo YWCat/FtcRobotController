@@ -136,6 +136,12 @@ public class RotatingSlide {
         }
         return angle;
     }
+
+    public double getHorizontalExpansionLength(){
+        double effLength = slide.getPosition() * Math.sin(getArmEffectiveAngle() * Math.PI / 180);
+        Log.i("horizontal expansion length", ""+ effLength);
+        return effLength;
+    }
     public boolean getSlideExceedsHorizontalLimit(){
         return slide.getExceedsHorizontalLimit();
     }

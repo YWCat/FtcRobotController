@@ -6,14 +6,21 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Time;
+import com.acmerobotics.roadrunner.Twist2d;
+import com.acmerobotics.roadrunner.Twist2dDual;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Localizer;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.DualMotorSlide;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
 import org.firstinspires.ftc.teamcode.subsystems.SampleIntake;
@@ -39,9 +46,12 @@ public class AATele extends LinearOpMode{
     private static final double MIN_SLOW_MODE = 0.3;
     private static final double DPAD_DRIVE = 0.3;
     private boolean slowModeOn = true;
-    private  boolean specimenOpenToggle = false;
-    private int intakeMode = 0;
-    private int outtakeMode = 0;
+
+    private Localizer localizer;
+    private Pose2d pose;
+    private final double robotLengthFromCOM = 14; //measured 12 inches long when arm is down, + 2 inch for safety
+    private final Vector2d canLiftSlide = new Vector2d(-12, -24);
+    private boolean trackingPosition = false;
 
 
     @Override
@@ -51,6 +61,10 @@ public class AATele extends LinearOpMode{
         RotatingSlide rotatingSlide = new RotatingSlide();
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
         SampleIntake sampleIntake = new SampleIntake();
+        MecanumDrive mecanumDrive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        //the pose does not matter
+        localizer = mecanumDrive.getDriveLocalizer();
+        pose = new Pose2d(0,0,0);
 
         smartGamepad1 = new SmartGamepad(gamepad1);
         smartGamepad2 = new SmartGamepad(gamepad2);
@@ -140,6 +154,7 @@ public class AATele extends LinearOpMode{
                 loopUpdater.addAction(rotatingSlide.retractSlide());
                 //Log.i("UpdateActions", "Added retract action; Actions Active: " +  loopUpdater.getActiveActions().size());
             }
+
             if (smartGamepad2.a_pressed()){ // put everything in position to intake
                 Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_DEG, false);
                 Action retractSlide1 = rotatingSlide.slide.getSlideToPosition(Math.max(rotatingSlide.slide.getPosition()-1, RotatingSlide.SLIDE_RETRACT_IN), 1, false);
@@ -165,15 +180,23 @@ public class AATele extends LinearOpMode{
             }
             if(smartGamepad1.x_pressed()){
                 //after picking up a block for sample
+                pose = new Pose2d(new Vector2d(0, 0), 0);
                 Action raiseArmAfterIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_DEG, true);
                 //Action triggerSamplePick = smartGamepad2.getWaitForButtons("x", true);
                 loopUpdater.addAction(raiseArmAfterIntake);
+                trackingPosition = true;
+
             } if(smartGamepad1.b_pressed()){
                 Action raiseArmAfterIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_DEG, true);
                 Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, false);
                 loopUpdater.addAction(new SequentialAction(raiseArmAfterIntake, retractSlide));
             }
-            if(smartGamepad2.y_pressed()){ //basket outtake prep
+
+            if(smartGamepad2.y_pressed() || /*basket outtake prep*/
+                    (trackingPosition && (
+                            pose.position.x + pose.heading.real*(rotatingSlide.getHorizontalExpansionLength()+robotLengthFromCOM) < 0
+                    ))){
+                trackingPosition = false;
                 Action armToBasketPrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_VERTICAL_POS,false);
                 Action extendSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN, 1, true);
                 Action turnWristPrep = sampleIntake.getTurnWristAction(SampleIntake.WRIST_PREP_OUTTAKE_ROLLER, false);
@@ -348,17 +371,23 @@ public class AATele extends LinearOpMode{
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
+            Twist2dDual<Time> twist = localizer.update();
+            pose = pose.plus(twist.value());
+
             rotatingSlide.update();
             // Show the elapsed game time and wheel power.
             //telemetry.addD  ata("Status", "Run Time: " + runtime.toString());
             //telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             //telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Slides Position", "left: "  + rotatingSlide.slide.getLeftEncoder() + "right: " + rotatingSlide.slide.getRightEncoder());
+            //telemetry.addData("Slides Position", "left: "  + rotatingSlide.slide.getLeftEncoder() + "right: " + rotatingSlide.slide.getRightEncoder());
             telemetry.addData("Slides Position Inches", "left: "  + rotatingSlide.slide.getPosition());
-            telemetry.addData("slides velocity", "left: " + rotatingSlide.slide.getLeftVelocity() + "right: " + rotatingSlide.slide.getRightVelocity());
+            //telemetry.addData("slides velocity", "left: " + rotatingSlide.slide.getLeftVelocity() + "right: " + rotatingSlide.slide.getRightVelocity());
             telemetry.addData("worm position", ""+ rotatingSlide.arm.getMotorPositionAngle());
             telemetry.addData("wrist position", ""+ sampleIntake.getWristPosition());
             telemetry.addData("# Active Actions: ", loopUpdater.getActiveActions().size());
+            telemetry.addData("Pose:", "x: %4.3f y: %4.3f", pose.position.x, pose.position.y);
+            telemetry.addData("Pose:", "heading: " + pose.heading);
+            telemetry.addData("End of arm location:", ""+ (pose.position.x + pose.heading.real*(rotatingSlide.getHorizontalExpansionLength()+robotLengthFromCOM)));
             telemetry.update();
             loopUpdater.updateAndRunAll();
 
