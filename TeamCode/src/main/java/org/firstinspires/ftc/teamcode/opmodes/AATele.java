@@ -49,7 +49,7 @@ public class AATele extends LinearOpMode{
 
     private Localizer localizer;
     private Pose2d pose;
-    private final double robotLengthFromCOM = 14; //measured 12 inches long when arm is down, + 2 inch for safety
+    private final double robotLengthFromCOM = 16; //measured 14 inches long when arm is down, + 2 inch for safety
     private final Vector2d canLiftSlide = new Vector2d(-12, -24);
     private boolean trackingPosition = false;
 
@@ -156,6 +156,7 @@ public class AATele extends LinearOpMode{
             }
 
             if (smartGamepad2.a_pressed()){ // put everything in position to intake
+                trackingPosition = false;
                 Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_DEG, false);
                 Action retractSlide1 = rotatingSlide.slide.getSlideToPosition(Math.max(rotatingSlide.slide.getPosition()-1, RotatingSlide.SLIDE_RETRACT_IN), 1, false);
                 Action retractSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
@@ -185,8 +186,8 @@ public class AATele extends LinearOpMode{
                 //Action triggerSamplePick = smartGamepad2.getWaitForButtons("x", true);
                 loopUpdater.addAction(raiseArmAfterIntake);
                 trackingPosition = true;
-
             } if(smartGamepad1.b_pressed()){
+                trackingPosition = false;
                 Action raiseArmAfterIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_DEG, true);
                 Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, false);
                 loopUpdater.addAction(new SequentialAction(raiseArmAfterIntake, retractSlide));
@@ -347,6 +348,7 @@ public class AATele extends LinearOpMode{
 
             if(smartGamepad2.left_stick_button_pressed() || smartGamepad1.y_pressed()){
                 loopUpdater.clearActions();
+                trackingPosition = false;
                 //sampleIntake.manualMoveRoller(0);
                 rotatingSlide.slide.holdPosition();
                 rotatingSlide.arm.stopMotor();
