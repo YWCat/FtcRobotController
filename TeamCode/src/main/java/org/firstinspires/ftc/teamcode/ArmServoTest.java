@@ -4,26 +4,38 @@ import com.acmerobotics.dashboard.config.Config;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.configuration.annotations.ServoType;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
 @TeleOp(name="ArmServoTest", group="Linear OpMode")
 public final class ArmServoTest extends LinearOpMode {
     public int intakeState = 0;
     boolean isFast = true;
+
+    boolean handClosed = true;
+    boolean wristUp = false;
+    boolean slideControlled = false;
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
+
+    // Allows for asynchronous operation
+    public static void setTimeout(Runnable runnable, int delay) {
+        new Thread(()-> {
+            try {
+                Thread.sleep(delay);
+                runnable.run();
+            }
+            catch (Exception e) {
+                System.err.println(e);
+            }
+        }).start();
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         double servoPos = 0;
@@ -53,14 +65,106 @@ public final class ArmServoTest extends LinearOpMode {
         Lslide.setDirection(DcMotorSimple.Direction.REVERSE);
         waitForStart();
         while (!isStopRequested()) {
+            // servo 3: wrist, servo 4: hand
             //claw
-            if(gamepad1.x){
-                servo3.setPosition(0.45);
-                servo4.setPosition(0.5);
+            if (gamepad1.a) { // slightly raised position
+                servo3.setPosition(0.6);
+                wristUp = true;
             }
-            if(gamepad1.y){
-                servo3.setPosition(1.0);
-                servo4.setPosition(0.7);
+            if(gamepad1.x) { // up: 1, down: 0.5
+                if (!wristUp) {
+                    servo3.setPosition(1);
+                }
+                else {
+                    servo3.setPosition(0.5);
+                }
+                wristUp = !wristUp;
+                sleep(100);
+            }
+            if(gamepad1.y) { // open: 1, closed: 0.7
+                if (!handClosed) {
+                    servo4.setPosition(1);
+                }
+                else {
+                    servo4.setPosition(0.7);
+                }
+                handClosed = !handClosed;
+                sleep(100);
+            }
+
+            if (gamepad2.x) { // lower arm, swing down
+                if (!slideControlled) {
+                    slideControlled = true;
+
+                    setTimeout(() -> {
+                        servo3.setPosition(0.6);
+                        sleep(100);
+
+                        // retract arm
+                        Lslide.setPower(-1);
+                        Rslide.setPower(-1);
+                        sleep(10);
+
+                        // slides moving in negative direction
+                        while (Lslide.getVelocity() < -3 || Rslide.getVelocity() < -3) {
+                            /* wait */
+                        }
+
+                        Lslide.setPower(0);
+                        Rslide.setPower(0);
+
+                        // swing arm
+                        wormMotor.setTargetPosition(intakePos);
+                        wormMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        wormMotor.setPower(1);
+
+                        slideControlled = false;
+                    }, 0);
+                }
+            }
+
+            if (gamepad2.y) { // retract arm, swing up, and re-extend
+                if (!slideControlled) {
+                    slideControlled = true;
+
+                    // long sequence, run asynchronously
+                    setTimeout(()->{
+                        // retract arm
+                        Lslide.setPower(-1);
+                        Rslide.setPower(-1);
+                        sleep(10);
+
+                        // slides moving in negative direction
+                        while (Lslide.getVelocity() < -3 || Rslide.getVelocity() < -3) {
+                            /* wait */
+                        }
+                        Lslide.setPower(0);
+                        Rslide.setPower(0);
+
+                        // swing arm
+                        wormMotor.setTargetPosition(slidePos);
+                        wormMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        wormMotor.setPower(1);
+
+                        while (Math.abs(wormMotor.getCurrentPosition() - wormMotor.getTargetPosition()) > 10) {
+                            /* wait */
+                        }
+
+                        // extend arm
+                        Lslide.setPower(1);
+                        Rslide.setPower(1);
+                        sleep(10);
+
+                        // slides moving in positive direction
+                        while (Lslide.getVelocity() > 10 || Rslide.getVelocity() > 10) {
+                            /* wait */
+                        }
+                        Lslide.setPower(0);
+                        Rslide.setPower(0);
+
+                        slideControlled = false;
+                    }, 0);
+                }
             }
             //move
             double max;
@@ -133,24 +237,28 @@ public final class ArmServoTest extends LinearOpMode {
             }
             if(isFast) {
                 if (gamepad1.dpad_up) {
+                    slideControlled = false;
                     Lslide.setPower(1);
                     Rslide.setPower(1);
                 } else if (gamepad1.dpad_down) {
+                    slideControlled = false;
                     Lslide.setPower(-1);
                     Rslide.setPower(-1);
-                } else{
+                } else if (!slideControlled) {
                     Lslide.setPower(0);
                     Rslide.setPower(0);
                 }
             }
             else{
                 if (gamepad1.dpad_up) {
+                    slideControlled = false;
                     Lslide.setPower(0.5);
                     Rslide.setPower(0.5);
                 } else if (gamepad1.dpad_down) {
+                    slideControlled = false;
                     Lslide.setPower(-0.5);
                     Rslide.setPower(-0.5);
-                } else{
+                } else if (!slideControlled) {
                     Lslide.setPower(0);
                     Rslide.setPower(0);
                 }
