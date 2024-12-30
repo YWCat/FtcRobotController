@@ -76,7 +76,7 @@ public final class ArmServoTest extends LinearOpMode {
                     servo3.setPosition(1);
                 }
                 else {
-                    servo3.setPosition(0.5);
+                    servo3.setPosition(0.4);
                 }
                 wristUp = !wristUp;
                 sleep(100);
@@ -129,6 +129,10 @@ public final class ArmServoTest extends LinearOpMode {
 
                     // long sequence, run asynchronously
                     setTimeout(()->{
+                        //wrist slightly up
+                        servo3.setPosition(0.6);
+                        sleep(100);
+
                         // retract arm
                         Lslide.setPower(-1);
                         Rslide.setPower(-1);
