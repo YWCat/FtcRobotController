@@ -10,7 +10,6 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utility.PIDFController;
@@ -238,6 +237,14 @@ public class DualMotorSlide {
         slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public double getEffExpansionInches(){
+        return ticksToInches(effectiveMaxExtension);
+    }
+
+    public double getMaxHorizontalLimitInches(){
+        return MAX_HORIZONTAL_LIMIT_IN;
     }
 
 

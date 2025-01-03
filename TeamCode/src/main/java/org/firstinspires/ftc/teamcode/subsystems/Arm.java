@@ -18,7 +18,7 @@ public class Arm {
     private RotatingSlide rotatingSlide;
     public armToPosition prevMoveArmAction = null;
     private static final double TICKS_PER_REV = 384.5; //
-    private static final int TARGET_TOLERANCE = 70; //units: ticks
+    private static final int TARGET_TOLERANCE = 45; //units: ticks
         //approx the height of a sample when doing intake
     private static final double UP_VELOCITY = 2500; // x inches per 1 second // highly doubtful
 
@@ -82,7 +82,7 @@ public class Arm {
             if(!runStarted){
                 if(rotatingSlide.getSlideExceedsHorizontalLimit() && targetPosition>armMotor.getCurrentPosition()){
                     armMotor.setVelocity(0);
-                    Log.i("arm Horizontal Limit","Horizontal limit exceeded, stopping action before start");
+                    Log.i("armMotor Horizontal Limit","Horizontal limit exceeded, stopping action before start");
                     return false;
                 }
                 armMotor.setTargetPosition(targetPosition);
@@ -101,7 +101,7 @@ public class Arm {
                 double currentVelocity = armMotor.getVelocity();
                 boolean targetReached = (Math.abs(currentPosition - targetPosition) <= TARGET_TOLERANCE) && (currentVelocity <= 20);
                 boolean timeOut = (System.currentTimeMillis()-startTime >= timeout);
-                Log.i("armMotor RobotActions", "motor pos: " + currentPosition + "target pos: " + targetPosition + "velocity: " + currentVelocity + "reached? = " + targetReached);
+                //Log.i("armMotor RobotActions", "motor pos: " + currentPosition + "target pos: " + targetPosition + "velocity: " + currentVelocity + "reached? = " + targetReached);
                 //if(motorBusy && !timeOut && !cancelled) {
                 if (!targetReached && !timeOut && !cancelled ) {
                     Log.i("armMotor RobotActions", "target not reached and not cancelled");

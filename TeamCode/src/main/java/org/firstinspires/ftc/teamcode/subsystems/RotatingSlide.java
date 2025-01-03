@@ -59,7 +59,8 @@ public class RotatingSlide {
     public static  int SLIDE_INTAKE_TICKS = 1300;
     public static  int ARM_INTAKE_TICKS = 2400; //in ticks
     public static double ARM_INTAKE_DEG = 90.0;
-    public static  double ARM_ABOVE_INTAKE_LOW_DEG = 75;
+    public static  double ARM_ABOVE_INTAKE_LOW_DEG = 80;
+    public static  double ARM_ABOVE_INTAKE_LOWEST_DEG = 85;
     public static  double ARM_ABOVE_INTAKE_HIGH_DEG = 67.5;
     public static  double SLIDE_RETRACT_IN = 0;
     public static  int ARM_VERTICAL_POS = 0;
@@ -142,6 +143,9 @@ public class RotatingSlide {
         double effLength = slide.getPosition() * Math.sin(getArmEffectiveAngle() * Math.PI / 180);
         //Log.i("horizontal expansion length", ""+ effLength);
         return effLength;
+    }
+    public double getSlideMaxHorizontalLimitInches(){
+        return slide.getMaxHorizontalLimitInches();
     }
     public boolean getSlideExceedsHorizontalLimit(){
         return slide.getExceedsHorizontalLimit();

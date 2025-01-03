@@ -172,7 +172,7 @@ public class AATele extends LinearOpMode{
                         new SequentialAction(
                                 retractSlide1,
                                 new ParallelAction(retractSlide2, armToIntake),
-                                waitForA, armPickSample, closeClaw, new SleepAction(0.2),
+                                waitForA, armPickSample, closeClaw, new SleepAction(1),
                                 raiseArmAfterIntake));
                 if(rotatingSlide.isHorizontal()){
                     toIntake = new ParallelAction(
@@ -180,7 +180,7 @@ public class AATele extends LinearOpMode{
                             openClaw,
                             new SequentialAction(armToIntake,
                                     waitForA,
-                                    armPickSample, closeClaw, new SleepAction(0.2),
+                                    armPickSample, closeClaw, new SleepAction(1),
                                     raiseArmAfterIntake));
                 }
                 loopUpdater.addAction(toIntake);
@@ -271,6 +271,7 @@ public class AATele extends LinearOpMode{
                 Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_IDLE_CLAW, false);
                 Action waitForLT = smartGamepad1.getWaitForButtons("left_trigger", false);
                 Action outtakeAndLeave = new SequentialAction(rollOuttake,
+                        new SleepAction(0.2),
                         new ParallelAction(turnWristDown, new SleepAction(0.2)),
                         rotatingSlide.retractSlide());
                 loopUpdater.addAction(outtakeAndLeave);
@@ -313,15 +314,38 @@ public class AATele extends LinearOpMode{
                 Log.v("Slide Power", "invoking holdPosition at 3");
                 rotatingSlide.slide.holdPosition();
             }
-            //player 1 also controls slides, but only fine-tuning
+            //player 1 also controls slides, but only fine-tuning and aiming for intake
+            /*
+            angle at 0 extension: 80 degrees
+            angle at full-ish extension: 85 degrees
+            assume linear change for easy calculations for now. if bad, do trigonometry.
+             */
             if(smartGamepad1.dpad_up_pressed()){
                 //rotatingSlide.slide.adjustLift(MIN_SLOW_MODE);
-                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(rotatingSlide.slide.getPosition() + 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)), 1, false);
-                loopUpdater.addAction(adjustSlide);
+                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() + 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
+                double toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG;
+                if(rotatingSlide.isHorizontal()){
+                    toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
+                            (RotatingSlide.ARM_ABOVE_INTAKE_LOWEST_DEG - RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG)
+                                    * (Math.min(armToPosition, rotatingSlide.getSlideMaxHorizontalLimitInches()) / rotatingSlide.getSlideMaxHorizontalLimitInches());
+                }
+                Log.v("armMotor moveProportional", "go to angle " + toAngle + " 5 degrees * " + (armToPosition / rotatingSlide.getSlideMaxHorizontalLimitInches()));
+                Action lowerSlideProportional = rotatingSlide.arm.getArmToPosition(toAngle, false);
+                loopUpdater.addAction(new ParallelAction(adjustSlide, lowerSlideProportional));
             }  if(smartGamepad1.dpad_down_pressed()){
                 //rotatingSlide.slide.adjustLift(-1 * MIN_SLOW_MODE);
-                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(rotatingSlide.slide.getPosition() - 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)), 1, false);
-                loopUpdater.addAction(adjustSlide);
+                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() - 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
+                double toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG;
+                if(rotatingSlide.isHorizontal()){
+                    toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
+                            (RotatingSlide.ARM_ABOVE_INTAKE_LOWEST_DEG - RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG)
+                                    * (Math.min(armToPosition, rotatingSlide.getSlideMaxHorizontalLimitInches()) / rotatingSlide.getSlideMaxHorizontalLimitInches());
+                }
+                Log.v("armMotor moveProportional", "go to angle " + toAngle + " 5 degrees * " + (armToPosition / rotatingSlide.getSlideMaxHorizontalLimitInches()));
+                Action lowerSlideProportional = rotatingSlide.arm.getArmToPosition(toAngle, false);
+                loopUpdater.addAction(new ParallelAction(adjustSlide, lowerSlideProportional));
             }  if(gamepad1.dpad_right){
                 leftFrontPower = DPAD_DRIVE*1.2;
                 rightFrontPower = -1 * DPAD_DRIVE;
