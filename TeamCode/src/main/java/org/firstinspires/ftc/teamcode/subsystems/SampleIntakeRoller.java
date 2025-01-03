@@ -19,7 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 @Config
-public class SampleIntake {
+public class SampleIntakeRoller {
     CRServo  intakeServo;
     DistanceSensor distSensor;
     Servo wristServo;
@@ -37,27 +37,34 @@ public class SampleIntake {
     public enum Mode {
         ROLLER, CLAW
     }
-    Mode mode = Mode.ROLLER;
+    Mode mode = Mode.CLAW;
 
     public static  double distanceThreshold = 2; //in inches
-    public static  double WRIST_INTAKE_CLAW = 0.67;
-    public static  double WRIST_OUTTAKE_CLAW = 0.1;
+    public static  double WRIST_INTAKE_CLAW = 0.35;
+    public static  double WRIST_OUTTAKE_CLAW = 0.39;
+    public static  double WRIST_PREP_OUTTAKE_CLAW = 0.36; //0.07;
+    public static  double WRIST_IDLE_CLAW = 0.34;
+    public static  double WRIST_INIT_CLAW = 0.34;
     public static  double WRIST_INTAKE_ROLLER = 0.9; //0.88; 0.95(too high)
     public static  double WRIST_OUTTAKE_ROLLER = 0.12; //0.07;
     public static  double WRIST_PREP_OUTTAKE_ROLLER = 0.47; //0.07;
     public static  double WRIST_IDLE_ROLLER = 0.9;
     public static  double WRIST_HANG_ROLLER = 0.0;
     public static  double WRIST_INIT_ROLLER = 0.0;
-    public static  double WRIST_INIT_CLAW = 0.0;
 
-    public SampleIntake(){
+    public SampleIntakeRoller(){
         RobotCore robotCore = RobotCore.getRobotCore();
         intakeServo = robotCore.hardwareMap.crservo.get(RobotConfig.sampleServo);
         distSensor = robotCore.hardwareMap.get(DistanceSensor.class, RobotConfig.distanceSensor);
         wristServo = robotCore.hardwareMap.get(Servo.class, RobotConfig.wrist); //0.5 is intake, 0.9 is outtake, base pos = 1.0, hold pos = 0.8
         intakeServo.setPower(0);
         //Log.v("intakeServo initialized", "power = " + 0);
-        wristServo.setPosition(WRIST_INIT_ROLLER);
+        if(mode == Mode.ROLLER){
+            wristServo.setPosition(WRIST_INIT_ROLLER);
+        } else {
+            wristServo.setPosition(WRIST_INIT_CLAW);
+        }
+
     }
     public double getWristPosition(){
         return wristServo.getPosition();
@@ -84,7 +91,6 @@ public class SampleIntake {
             if(mode == Mode.CLAW){
                 direction = DcMotorSimple.Direction.FORWARD;
                 if(intake){
-                    direction = DcMotorSimple.Direction.FORWARD;
                     servoPower = INTAKE_POS_CLAW;
                     isIntake = true;
                 } else{
@@ -101,9 +107,7 @@ public class SampleIntake {
                     isIntake = false;
                 }
             }
-            if(mode == Mode.ROLLER){
-
-            } else{
+            if(mode != Mode.ROLLER){
                 timeout = 100;
             }
             runStarted = false;
@@ -150,7 +154,6 @@ public class SampleIntake {
         private boolean cancelled = false;
         private long startTime;
         private double servoPower; //
-        private boolean isIntake;
         private boolean runStarted;
         private DcMotorSimple.Direction direction;
         public startRoller(boolean intake){
@@ -161,21 +164,16 @@ public class SampleIntake {
             if(mode == Mode.CLAW){
                 direction = DcMotorSimple.Direction.FORWARD;
                 if(intake){
-                    direction = DcMotorSimple.Direction.FORWARD;
                     servoPower = INTAKE_POS_CLAW;
-                    isIntake = true;
                 } else{
                     servoPower = OUTTAKE_POS_CLAW;
-                    isIntake = false;
                 }
             } else {
                 direction = DcMotorSimple.Direction.FORWARD;
                 if(intake){
                     servoPower = INTAKE_POWER_ROLLER;
-                    isIntake = true;
                 } else{
                     servoPower = OUTTAKE_POWER_ROLLER;
-                    isIntake = false;
                 }
             }
             runStarted = false;
@@ -192,7 +190,6 @@ public class SampleIntake {
                 return false;
         }
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
-            //intakeServo.setPower(0);
             cancelled = true;
             Log.i("intakeServo StartRoller RobotActions", "startRoller action cancelled");
         }
@@ -212,6 +209,7 @@ public class SampleIntake {
         public void changeTarget(long tout){
             if(mode == Mode.CLAW){
                 direction = DcMotorSimple.Direction.FORWARD;
+                servoPower = OUTTAKE_POS_CLAW;
                 //TODO
             } else {
                 direction = DcMotorSimple.Direction.REVERSE;
@@ -246,7 +244,9 @@ public class SampleIntake {
 
         }
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
-            intakeServo.setPower(0);
+            if(mode == Mode.ROLLER){
+                intakeServo.setPower(0);
+            }
             cancelled = true;
             Log.i("intakeServo RobotActions", " reverseRoller action cancelled");
         }
@@ -272,9 +272,7 @@ public class SampleIntake {
                 direction = DcMotorSimple.Direction.FORWARD;
                 servoPower = 0;
             }
-            if(mode == Mode.ROLLER){
-
-            } else{
+            if(mode != Mode.ROLLER){
                 timeout = 100;
             }
             runStarted = false;
@@ -292,7 +290,9 @@ public class SampleIntake {
 
         }
         public void cancel(){ //call this AFTER clearing the actions list in LoopUpdater
-            intakeServo.setPower(0);
+            if(mode == Mode.ROLLER){
+                intakeServo.setPower(0);
+            }
             cancelled = true;
             Log.i("intakeServo StopRoller RobotActions", "stopMotor action cancelled");
         }
@@ -455,7 +455,7 @@ public class SampleIntake {
     }
 
     public Action getPrepIOAction(boolean intake, boolean forceNew){
-        double wristPos = WRIST_IDLE_ROLLER;
+        double wristPos;
 
         if(mode == Mode.CLAW){
             if(intake){
@@ -463,7 +463,7 @@ public class SampleIntake {
             } else{
                 wristPos = WRIST_INTAKE_CLAW;
             }
-            return new ParallelAction(getTurnWristAction(wristPos, forceNew), getStartAndStopRollerAction(intake, forceNew));
+            return new ParallelAction(getTurnWristAction(wristPos, forceNew)/*, getStartAndStopRollerAction(intake, forceNew)*/);
         } else{
             if(intake){
                 wristPos = WRIST_INTAKE_ROLLER;

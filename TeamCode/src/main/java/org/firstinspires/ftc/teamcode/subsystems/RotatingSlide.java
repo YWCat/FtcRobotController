@@ -59,7 +59,8 @@ public class RotatingSlide {
     public static  int SLIDE_INTAKE_TICKS = 1300;
     public static  int ARM_INTAKE_TICKS = 2400; //in ticks
     public static double ARM_INTAKE_DEG = 90.0;
-    public static  double ARM_ABOVE_INTAKE_DEG = 75.5;
+    public static  double ARM_ABOVE_INTAKE_LOW_DEG = 75;
+    public static  double ARM_ABOVE_INTAKE_HIGH_DEG = 67.5;
     public static  double SLIDE_RETRACT_IN = 0;
     public static  int ARM_VERTICAL_POS = 0;
     public static  int ARM_RETRACT = ARM_VERTICAL_POS;
@@ -97,7 +98,7 @@ public class RotatingSlide {
         return new SequentialAction(
                 arm.getArmToPosition(ARM_BASKET_TICKS, false),
                 slide.getSlideToPosition(SLIDE_BASKET_TICKS, false),
-                sampleIntake.getStartAndStopRollerAction(SampleIntake.ROLLER_POWER*-1, false)
+                sampleIntake.getStartAndStopRollerAction(SampleIntakeRoller.ROLLER_POWER*-1, false)
         );
     }*/
 

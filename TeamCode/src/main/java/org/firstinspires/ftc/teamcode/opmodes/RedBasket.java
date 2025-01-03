@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.LimeLight;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
-import org.firstinspires.ftc.teamcode.subsystems.SampleIntake;
+import org.firstinspires.ftc.teamcode.subsystems.SampleIntakeRoller;
 import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 import android.util.Log;
@@ -50,7 +50,7 @@ public final class RedBasket extends LinearOpMode {
         RotatingSlide rotatingSlide = new RotatingSlide();
         rotatingSlide.slide.setTolerance(1.0);
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
-        SampleIntake sampleIntake = new SampleIntake();
+        SampleIntakeRoller sampleIntake = new SampleIntakeRoller();
 
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
