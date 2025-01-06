@@ -34,7 +34,7 @@ public class BasketTest extends LinearOpMode {
                 .splineToLinearHeading(basketPose, Math.PI/2)
                 .splineToLinearHeading(sample3Pose, Math.PI)
                 .splineToLinearHeading(basketPose, Math.PI)
-                .splineToSplineHeading(new Pose2d(pos_multiplier*37,pos_multiplier*(15),Math.PI/2), -Math.PI/2)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*(36+botWidthHalf),pos_multiplier*(24),0), Math.PI/4)
                 .splineToLinearHeading(new Pose2d(pos_multiplier*18,pos_multiplier*(0),0), 0)
                 .build();
         waitForStart();
