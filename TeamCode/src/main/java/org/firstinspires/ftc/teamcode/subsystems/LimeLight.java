@@ -26,7 +26,7 @@ public class LimeLight {
     public double yOffset = 0; //Y correction, in inch
     public LimeLight(HardwareMap hardwareMap){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(0); // Pipeline 0 is for ApilTag
         /*
          * Starts polling for data.  If you neglect to call start(), getLatestResult() will return null.
          */

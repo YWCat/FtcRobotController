@@ -21,7 +21,7 @@ import android.util.Log;
 
 @Config
 @Autonomous(name="RedBasket", group="Autonomous")
-public final class RedBasket extends LinearOpMode {
+public final class Basket extends LinearOpMode {
     static int pos_multiplier = -1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;

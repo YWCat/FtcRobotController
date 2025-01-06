@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 @Config
 @Autonomous(name="RedObserv", group="Autonomous")
-public final class RedObserv extends LinearOpMode {
+public final class Observ extends LinearOpMode {
     static int pos_multiplier = -1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;

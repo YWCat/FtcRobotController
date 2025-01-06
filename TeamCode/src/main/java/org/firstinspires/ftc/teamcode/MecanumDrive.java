@@ -48,6 +48,8 @@ import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
 import org.firstinspires.ftc.teamcode.subsystems.LimeLight;
+import org.firstinspires.ftc.teamcode.subsystems.LimeLightColor;
+import org.firstinspires.ftc.teamcode.utility.PIDFController;
 import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 
 import java.lang.Math;
@@ -97,6 +99,15 @@ public final class MecanumDrive {
 
     public static Params PARAMS = new Params();
     public boolean enPoseCorr= false;
+    private double tgtTx;
+    private double tgtTy;
+    private double pwrFct;
+    private double thres = 1; //Tx, Ty alignement allowance
+    private double timeOut;
+    private double min_move_pwr = 0.3;
+    private double cam_kp=0.5, cam_ki=0, cam_kd = 0, ty_fac = 0.7;
+    private int align_mode=0; // 0: align Tx Only. 1: align Tx and Ty
+    private PIDFController pidfController;
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
             PARAMS.inPerTick * PARAMS.trackWidthTicks, PARAMS.inPerTick / PARAMS.lateralInPerTick);
@@ -128,6 +139,7 @@ public final class MecanumDrive {
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
 
     public LimeLight LLCam = null;
+    public LimeLightColor LLCamClr = null;
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftBack, rightBack, rightFront;
         public final IMU imu;
@@ -251,6 +263,12 @@ public final class MecanumDrive {
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         localizer = new DriveLocalizer();
 
+        PIDFController.PIDCoefficients coefficients = new PIDFController.PIDCoefficients();
+        coefficients.kP = cam_kp;
+        coefficients.kI = cam_ki;
+        coefficients.kD = cam_kd;
+        pidfController = new PIDFController(coefficients, 0.0, 0.0, 0);
+
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }
 
@@ -268,6 +286,85 @@ public final class MecanumDrive {
         rightBack.setPower(wheelVels.rightBack.get(0) / maxPowerMag);
         rightFront.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
     }
+
+    public void stop() {
+        leftFront.setPower(0);
+        leftBack.setPower(0);
+        rightBack.setPower(0);
+        rightFront.setPower(0);
+    }
+
+    public void setCamCorr(boolean en, double pwr, int mode, double tx, double ty, double to_s) {
+        this.enPoseCorr = en;
+        this.pwrFct = pwr;
+        this.align_mode = mode;
+        this.tgtTx = tx;
+        this.tgtTy = ty;
+        this.timeOut = to_s;
+    }
+    public void disCamCorr() {
+        this.enPoseCorr = false;
+    }
+    public void alignByCam(boolean alignTx) {
+        double startT = System.currentTimeMillis();
+        double currT = startT;
+        double px, py, ph;
+        PoseVelocity2d robotVelRobot;
+        double tgt = alignTx ? tgtTx : tgtTy;
+        double pwrFct = alignTx ? 1 : ty_fac;
+
+        double currMeas = alignTx ? LLCamClr.getTxTyTa(1, 0, 1) : LLCamClr.getTxTyTa(1, 1, 1);
+        double prevMeas = tgt;
+        LLCamClr.camOn(true);
+        pidfController.setOutputBounds(-1.0 * this.min_move_pwr, 1.0 * min_move_pwr);
+        pidfController.reset();
+        pidfController.targetPosition = tgt;
+
+        while (   (currT-startT <= timeOut*1000)          // Not time out
+                && Math.abs(currMeas - tgt) > thres       // Not reach target
+                && currMeas != prevMeas                   //avoid cam measurement stuck
+        ) {
+            if (currMeas == -1000) {
+                setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(0,0),0
+                ));
+                LLCamClr.camOn(false);
+                Log.v("LLCam-CLR-DRV", "TIMEOUT");
+                return;
+            }
+            if (Math.abs(currMeas - tgt) < 4 // filter outliers
+                    && (System.currentTimeMillis() - (LLCamClr.timeStamp*1000)<=timeOut) // cam measurement not too old
+            ) {
+                robotVelRobot = updatePoseEstimate();
+                double powerFromPIDF = pwrFct * pidfController.update(currMeas);
+                if (alignTx) {
+                    px = 0;
+                    py = powerFromPIDF;
+                } else { //AlignTy
+                    px = -powerFromPIDF;
+                    py = 0;
+                }
+                ph = 0;
+                setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(
+                                px,
+                                py
+                        ),
+                        ph
+                ));
+                Log.v("LLCam-CLR-DRV", "alignTx =" + alignTx + " py=" + py + " px=" + px);
+            }
+            currT = System.currentTimeMillis();
+            prevMeas = currMeas;
+            currMeas = alignTx ? LLCamClr.getTxTyTa(1, 0, 1): LLCamClr.getTxTyTa(1, 1, 1);
+        }
+        stop();
+        robotVelRobot = updatePoseEstimate();
+        LLCamClr.camOn(false);
+        Log.v("LLCam-CLR-DRV", "DONE: alignTx="+alignTx+" meas="+currMeas+" tgt="+pidfController.targetPosition+" time="+(currT-startT));
+    }
+
+
 
     public final class FollowTrajectoryAction implements Action {
         public final TimeTrajectory timeTrajectory;
@@ -301,12 +398,27 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
-            if (t >= timeTrajectory.duration) {
-                leftFront.setPower(0);
-                leftBack.setPower(0);
-                rightBack.setPower(0);
-                rightFront.setPower(0);
+            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
+            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
+            PoseVelocity2d robotVelRobot = updatePoseEstimate();
+            Pose2d error = txWorldTarget.value().minusExp(pose);
 
+            // stop robot when error < 1in and linearVel < 0.5,
+            // or trajectory has run over time for 1s
+            if ((t >= timeTrajectory.duration && error.position.norm() < 1 && robotVelRobot.linearVel.norm() < 0.5)
+                    || t >= timeTrajectory.duration + 1) {
+
+                /*
+                if (enPoseCorr) {
+
+                    alignByCam(true);
+                    if (align_mode==1) {
+                        alignByCam(false);
+                    };
+                }
+
+                 */
+                stop();
                 return false;
             }
 //FIXME
@@ -340,11 +452,10 @@ public final class MecanumDrive {
                 }
             }
  */
-
-            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
-            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
-
-            PoseVelocity2d robotVelRobot = updatePoseEstimate();
+            //Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
+            //targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
+            //PoseVelocity2d robotVelRobot = updatePoseEstimate();
+            //Pose2d error = txWorldTarget.value().minusExp(pose);
 
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
@@ -375,7 +486,6 @@ public final class MecanumDrive {
             p.put("y", pose.position.y);
             p.put("heading (deg)", Math.toDegrees(pose.heading.toDouble()));
 
-            Pose2d error = txWorldTarget.value().minusExp(pose);
             p.put("xError", error.position.x);
             p.put("yError", error.position.y);
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
