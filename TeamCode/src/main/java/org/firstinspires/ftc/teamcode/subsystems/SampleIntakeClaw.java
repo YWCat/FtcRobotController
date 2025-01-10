@@ -28,10 +28,11 @@ public class SampleIntakeClaw {
     public static  double OPEN_POS_CLAW = 1;
 
     public static  double distanceThreshold = 2; //in inches
-    public static  double WRIST_INTAKE_CLAW = 0.455;
-    public static  double WRIST_PREP_OUTTAKE_CLAW = 0.39;
+    public static  double WRIST_INTAKE_CLAW = 0.430; //0.455;
+    public static  double WRIST_ASCEND = 0.49;
+    public static  double WRIST_PREP_OUTTAKE_CLAW = 0.365; //0.39;
     public static double WRIST_HANG_CLAW = 0.34;
-    public static  double WRIST_OUTTAKE_CLAW = 0.365;
+    public static  double WRIST_OUTTAKE_CLAW = 0.340; //0.365;
     public static  double WRIST_INTAKE_SPECIMEN_CLAW = 0.4;
     public static  double WRIST_OUTTAKE_SPECIMEN_CLAW = 0.48;
     public static  double WRIST_IDLE_CLAW = 0.44;

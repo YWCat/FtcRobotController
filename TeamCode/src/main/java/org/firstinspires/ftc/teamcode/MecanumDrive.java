@@ -102,11 +102,12 @@ public final class MecanumDrive {
     private double tgtTx;
     private double tgtTy;
     private double pwrFct;
-    private double thres = 1; //Tx, Ty alignement allowance
+    private double thres = 0.5; //Tx, Ty alignement allowance
     private double timeOut;
-    private double min_move_pwr = 0.3;
+    private double min_move_pwr = 0.25;
     private double cam_kp=0.5, cam_ki=0, cam_kd = 0, ty_fac = 0.7;
     private int align_mode=0; // 0: align Tx Only. 1: align Tx and Ty
+    public boolean endWErr = false;
     private PIDFController pidfController;
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
@@ -322,7 +323,7 @@ public final class MecanumDrive {
 
         while (   (currT-startT <= timeOut*1000)          // Not time out
                 && Math.abs(currMeas - tgt) > thres       // Not reach target
-                && currMeas != prevMeas                   //avoid cam measurement stuck
+                //&& currMeas != prevMeas                   //avoid cam measurement stuck
         ) {
             if (currMeas == -1000) {
                 setDrivePowers(new PoseVelocity2d(
@@ -332,9 +333,8 @@ public final class MecanumDrive {
                 Log.v("LLCam-CLR-DRV", "TIMEOUT");
                 return;
             }
-            if (Math.abs(currMeas - tgt) < 4 // filter outliers
-                    && (System.currentTimeMillis() - (LLCamClr.timeStamp*1000)<=timeOut) // cam measurement not too old
-            ) {
+            //Log.v("LLCam-CLR-DRV", "currT"+(System.nanoTime())+" LLTS"+(LLCamClr.timeStamp));
+            if ((System.nanoTime()*1e-9 - LLCamClr.timeStamp) <= timeOut*1e9) { // Not to use sample too old
                 robotVelRobot = updatePoseEstimate();
                 double powerFromPIDF = pwrFct * pidfController.update(currMeas);
                 if (alignTx) {
@@ -345,13 +345,7 @@ public final class MecanumDrive {
                     py = 0;
                 }
                 ph = 0;
-                setDrivePowers(new PoseVelocity2d(
-                        new Vector2d(
-                                px,
-                                py
-                        ),
-                        ph
-                ));
+                setDrivePowers(new PoseVelocity2d(new Vector2d(px, py), ph));
                 Log.v("LLCam-CLR-DRV", "alignTx =" + alignTx + " py=" + py + " px=" + px);
             }
             currT = System.currentTimeMillis();
@@ -405,19 +399,16 @@ public final class MecanumDrive {
 
             // stop robot when error < 1in and linearVel < 0.5,
             // or trajectory has run over time for 1s
-            if ((t >= timeTrajectory.duration && error.position.norm() < 1 && robotVelRobot.linearVel.norm() < 0.5)
-                    || t >= timeTrajectory.duration + 1) {
-
-                /*
-                if (enPoseCorr) {
-
-                    alignByCam(true);
-                    if (align_mode==1) {
-                        alignByCam(false);
-                    };
-                }
-
-                 */
+            //if ((t >= timeTrajectory.duration && error.position.norm() < 1 && robotVelRobot.linearVel.norm() < 0.5)
+            //        || t >= timeTrajectory.duration + 1) {
+            if ((t >= timeTrajectory.duration) &&
+                    (    !endWErr
+                      || (endWErr && (  (   error.position.norm() < 1
+                                         && robotVelRobot.linearVel.norm() < 0.5)
+                                      || t >= timeTrajectory.duration + 1)
+                         )
+                    )
+               ) {
                 stop();
                 return false;
             }

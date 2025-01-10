@@ -13,13 +13,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
-import org.firstinspires.ftc.teamcode.subsystems.SampleIntakeRoller;
 import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 @Config
-@Autonomous(name="Observ", group="Autonomous")
-public final class Observ extends LinearOpMode {
+@Autonomous(name="ObservSwp1", group="Autonomous")
+public final class ObservSweep1 extends LinearOpMode {
     static int pos_multiplier = -1;
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
@@ -43,7 +42,7 @@ public final class Observ extends LinearOpMode {
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1.0,  true);
+        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
         Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.3, true);
         //Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
         Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+2, 1, true);
@@ -63,10 +62,7 @@ public final class Observ extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(-48*pos_multiplier,5*pos_multiplier,0), -Math.PI/2)
                 .setTangent(-Math.PI/2)
                 .lineToY(60*pos_multiplier)
-                .lineToY(12*pos_multiplier)
-                .splineToConstantHeading(new Vector2d(-59*pos_multiplier, -13),-Math.PI/2)
-                .lineToY(60*pos_multiplier)
-                .lineToY(58*pos_multiplier)
+                .lineToY(50*pos_multiplier)
                 .build();
 
         waitForStart();
@@ -114,7 +110,7 @@ public final class Observ extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new SequentialAction(closeSpecimen, new SleepAction(0.3)),
+                        new SequentialAction(closeSpecimen, new SleepAction(0.5)),
                         new ParallelAction(
                                 hangSndSample,
                                 raiseSlide
@@ -124,18 +120,18 @@ public final class Observ extends LinearOpMode {
                 )
         );
 
-        Action goToPark = drive.actionBuilder(drive.pose)
+        Action goToRepick2 = drive.actionBuilder(adjustedPose)
                 .setTangent(Math.PI/2)
                 .lineToY(-30)
                 .splineToLinearHeading(new Pose2d(45,69*pos_multiplier, 0),-Math.PI/2)
                 .build();
         retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+1.75, 1, true);
-        Actions.runBlocking(new ParallelAction(goToPark,retractSlide));
-        /*
+
+        Actions.runBlocking(new ParallelAction(goToRepick2,retractSlide));
         Action hangThdSample = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
                 .lineToY(-65)
-                .splineToLinearHeading(new Pose2d(-4,chamberY-3,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-8,chamberY-3,Math.PI),Math.PI/2)
                 .build();
         raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
         closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
@@ -144,16 +140,24 @@ public final class Observ extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new SequentialAction(closeSpecimen, new SleepAction(0.3)),
+                        new SequentialAction(closeSpecimen, new SleepAction(0.5)),
                         new ParallelAction(
-                                hangSndSample,
+                                hangThdSample,
                                 raiseSlide
                         ),
                         depositSlide,
                         openSpecimen
                 )
         );
-        */
+
+        Action goToPark = drive.actionBuilder(adjustedPose)
+                .setTangent(Math.PI/2)
+                .lineToY(-30)
+                .splineToLinearHeading(new Pose2d(45,69*pos_multiplier, 0),-Math.PI/2)
+                .build();
+        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
+        closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
+        Actions.runBlocking(new ParallelAction(goToPark,retractSlide,closeSpecimen));
 
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
 

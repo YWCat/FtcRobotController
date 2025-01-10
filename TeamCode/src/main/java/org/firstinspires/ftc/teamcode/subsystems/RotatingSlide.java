@@ -29,7 +29,7 @@ public class RotatingSlide {
     public static  int ARM_BASKET_TICKS = -280; //ticks
     public static double ARM_BASKET_DEG = -9.363; //ticks
     public static int ARM_AUTO_BASKET_TICKS = 380; // roller intake
-    public static int ARM_AUTO_BASKET_TICKS_CLAW = -400;
+    public static int ARM_AUTO_BASKET_TICKS_CLAW = (-400+100);
     public static double ARM_AUTO_BASKET_DEG = 12.707;
 
     //HANG

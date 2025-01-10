@@ -13,7 +13,7 @@ public class LimeLightColor {
 
     private Limelight3A limelight;
     private Pose3D botpose;
-    public double timeStamp; // in s
+    public double timeStamp; // in ns
     public Pose2d limePose;
     public double xOffset = 0; //X correction, in inch
     public double yOffset = 0; //Y correction, in inch
@@ -33,7 +33,7 @@ public class LimeLightColor {
             if (result != null) {
                 // Access general information
                 botpose = result.getBotpose();
-                timeStamp = System.nanoTime() * 1e-9;
+                timeStamp = System.nanoTime();
                 if (result.isValid()) {
                     /*
                     telemetry.addData("tx", result.getTx());
@@ -66,7 +66,7 @@ public class LimeLightColor {
             result = limelight.getLatestResult();
             if (result != null) {
                 // Access general information
-                timeStamp = System.nanoTime() * 1e-9;
+                timeStamp = System.nanoTime();
                 if (result.isValid()) {
                     switch (idx) {
                         case 0: meas = result.getTx(); break;
