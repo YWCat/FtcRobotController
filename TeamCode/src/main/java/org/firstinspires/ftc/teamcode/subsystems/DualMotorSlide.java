@@ -50,11 +50,12 @@ public class DualMotorSlide {
     public static double kD = 0.0;
     public static double PID_RANGE = 1.0;
 
-    public static double minPowerUp = 0.0;
-    public static double minPowerDown = 0.0;
+    public double minPowerUp = 0.0;
+    public double minPowerDown = 0.0;
 
     private boolean slideIsHorizontal = false;
     public static double HOLD_POWER_HANG = -0.3;
+    public static double HOLD_POWER_HANG_AIR = 0.1;
 
     private double powerL;
     private double powerR;
@@ -93,6 +94,7 @@ public class DualMotorSlide {
     }
 
     public boolean getExceedsHorizontalLimit(double clearance){ //clearance is in inches
+        int clearanceTicks = inchToTicks(clearance);
         int motorLPosition = slideMotorL.getCurrentPosition();
         int motorRPosition = slideMotorR.getCurrentPosition();
         double effectiveAngle =  rotatingSlide.getArmEffectiveAngle();
@@ -100,7 +102,7 @@ public class DualMotorSlide {
             effectiveAngle = 0.00001;
         }
         double calculatedEffMaxExt= inchToTicks((MAX_HORIZONTAL_LIMIT_IN) / Math.cos((90- effectiveAngle)*Math.PI/180));
-        boolean exceeds = (motorLPosition>= effectiveMaxExtension-clearance || motorRPosition>= effectiveMaxExtension-clearance);
+        boolean exceeds = (motorLPosition>= effectiveMaxExtension-clearanceTicks || motorRPosition>= effectiveMaxExtension-clearanceTicks);
         Log.i("horizontal limit slide extension", "slideL: " + motorLPosition + "slideR " + motorRPosition);
         Log.i("horizontal limit slide extension", "angle: " + effectiveAngle);
         Log.i("horizontal limit slide extension",  " limit1: " + effectiveMaxExtension + "limit2: "+calculatedEffMaxExt+ " exceeds: " + exceeds);
@@ -311,12 +313,12 @@ public class DualMotorSlide {
                     Log.v("Slide Extension & Power Sync", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
                     Log.v("Slide Extension", "Max extension: " + ticksToInches(effectiveMaxExtension));
                     powerFromPIDF = powerFromPIDF + getHoldPower();
-                    Log.v("power sync 2", "after adding hold power" + powerFromPIDF);
+                    Log.v("Slide power 2", "after adding hold power" + powerFromPIDF);
                     double mappedPower = mapPower(powerFromPIDF);
                     powerL = mappedPower;
                     powerR = mappedPower;
                     updatePowerWithEncoderDiff(mappedPower>0);
-                    Log.v("Power Sync power calcs", String.format("PID C power: %4.2f, Min/Max map power: %4.2f", powerFromPIDF, mappedPower));
+                    Log.v("Slide Power power calcs", String.format("Min/Max map power: %4.2f, min up: %4.2f, min down: %4.2f", mappedPower, minPowerUp, minPowerDown));
                     slideMotorL.setPower(powerL);
                     slideMotorR.setPower(powerR);
                     Log.v("Slide Power Sync", "Action Should set power: left: " + powerL + "right: " + powerR + ". Actual power: Left: " + slideMotorL.getPower() + " Right: " + slideMotorR.getPower());
@@ -440,7 +442,10 @@ public class DualMotorSlide {
             if (getPosition() > 26) {
                 Log.i("holdPower", "tall mode, 0.25");
                 return 0.25;
-            } else {
+            } if (rotatingSlide.getIsHanging()){
+                Log.i("holdPower", "hanging, 0");
+                return 0;
+            }else {
                 Log.i("holdPower", "normal mode " + 0.1);
                 return 0.1;
             }

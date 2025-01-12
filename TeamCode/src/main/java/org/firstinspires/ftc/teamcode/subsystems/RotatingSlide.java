@@ -12,13 +12,13 @@ public class RotatingSlide {
     public Arm arm = null;
     public DualMotorSlide slide = null;
 
-    public static boolean IS_HANGING = false;
+    public boolean IS_HANGING = false;
 
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
-    public static final double SLIDE_CHAMBER_PREP_IN = 18.5;
+    public static final double SLIDE_CHAMBER_PREP_IN = 17.5;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final double SLIDE_CHAMBER_PLACE_IN = 14;
+    public static final double SLIDE_CHAMBER_PLACE_IN = 13;
     public static final double SLIDE_PICK_UP_SPECIMEN_IN = 2.9;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 
@@ -44,12 +44,10 @@ public class RotatingSlide {
     public static double ARM_HANG_LOW_LOCK_DEG = 67.545;
     public static double SLIDE_HANG_LOW_LOCK_IN = 0.0;
     public static double SLIDE_HANG_HIGH_PREP_IN = 20.0;
-    public static int ARM_HANG_HIGH_PREP_TICKS = 2270;
-    public static double ARM_HANG_HIGH_PREP_DEG = 75.905;
-    public static int ARM_HANG_HIGH_SWING_TICKS = 300;
-    public static double ARM_HANG_HIGH_SWING_DEG =10.032;
-    public static double SLIDE_HANG_HIGH_SWING_IN = 6;
-    public static int ARM_HANG_HIGH_LOCK_TICKS = -240;
+    public static double ARM_HANG_HIGH_PREP_PREP_DEG = 75;
+    public static double ARM_HANG_HIGH_PREP_DEG = 83;
+    public static double ARM_HANG_HIGH_SWING_DEG = 8.032;
+    public static double SLIDE_HANG_HIGH_SWING_IN = 4;
     public static double ARM_HANG_HIGH_LOCK_DEG = -8.025;
     public static double SLIDE_HANG_HIGH_LOCK_IN = -0.3;
 
@@ -172,6 +170,10 @@ public class RotatingSlide {
     public void updateHangStatus(boolean isHanging){
         IS_HANGING = isHanging;
         Log.v("horizontalLimit2", "Update status " + isHanging);
+    }
+
+    public boolean getIsHanging(){
+        return IS_HANGING;
     }
 
 

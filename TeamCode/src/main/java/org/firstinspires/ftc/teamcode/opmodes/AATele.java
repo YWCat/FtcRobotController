@@ -262,7 +262,10 @@ public class AATele extends LinearOpMode{
                 Action powerMotorsHold = rotatingSlide.slide.getSetMotorPower(DualMotorSlide.HOLD_POWER_HANG, false);
 
                 Action raiseSlidePrep= rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_HIGH_PREP_IN, 0.8, true);
+                Action raiseArmPrepMid = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_HIGH_PREP_PREP_DEG, true);
                 Action raiseArmPrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_HIGH_PREP_DEG, true);
+                Action powerMotorsStayInAir = rotatingSlide.slide.getSetMotorPower(DualMotorSlide.HOLD_POWER_HANG_AIR, true);
+
                 Action waitForLB2 = smartGamepad2.getWaitForButtons("left_bumper", true);
                 Action raiseArmSwing = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_HIGH_SWING_DEG, true);
                 Action lowerSlideSwing = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_HIGH_SWING_IN, 0.8, true);
@@ -274,9 +277,11 @@ public class AATele extends LinearOpMode{
                                 new SequentialAction(lowerSlideLowFirst, lowerSlideLowSecond)),
                                 lowerArmLowLock, powerMotorsHold,
                         waitForLB1,
-                        raiseSlidePrep, raiseArmPrep,
+                        new ParallelAction(raiseSlidePrep, raiseArmPrepMid), new ParallelAction(powerMotorsStayInAir, raiseArmPrep),
                         waitForLB2,
-                        new ParallelAction(raiseArmSwing, new SequentialAction(new SleepAction(0.5), lowerSlideSwing)), powerMotorsHoldLock, lowerArmLock, new SleepAction(2), lowerSlideLock
+                        new ParallelAction(raiseArmSwing, new SequentialAction(new SleepAction(0.5), lowerSlideSwing)),
+                        powerMotorsHoldLock,
+                        lowerArmLock, new SleepAction(2), lowerSlideLock
                         );
                 loopUpdater.addAction(hangSequence);
             }
@@ -295,7 +300,7 @@ public class AATele extends LinearOpMode{
                     Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.4,  false);
                     Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
                     Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
-                    loopUpdater.addAction(new SequentialAction(lowerSlide, openSpecimen, new SleepAction(0.15), lowerSlide2));
+                    loopUpdater.addAction(new SequentialAction(lowerSlide, openSpecimen, new SleepAction(1), lowerSlide2));
 
                 }
 
@@ -381,12 +386,12 @@ public class AATele extends LinearOpMode{
 
             }
 
-            if(smartGamepad2.left_bumper_pressed() && smartGamepad2.right_trigger < 0.3 ){
+            if(smartGamepad2.left_bumper_pressed() && smartGamepad2.right_trigger < 0.3 && !rotatingSlide.getSlideExceedsHorizontalLimit(8)){
                 double pos = sampleIntake.getWristPosition();
                 Action wristIntake = sampleIntake.getTurnWristAction(pos + 0.005 * Math.min(1, (1-gamepad2.right_trigger+MIN_SLOW_MODE)), true);
                 loopUpdater.addAction(wristIntake);
             }
-            if(smartGamepad2.right_bumper_pressed()){
+            if(smartGamepad2.right_bumper_pressed() && !rotatingSlide.getSlideExceedsHorizontalLimit(8)){
                 double pos = sampleIntake.getWristPosition();
                 Action wristIntake = sampleIntake.getTurnWristAction(pos - 0.005 * Math.min(1, (1-gamepad2.right_trigger+MIN_SLOW_MODE)), true);
                 loopUpdater.addAction(wristIntake);
