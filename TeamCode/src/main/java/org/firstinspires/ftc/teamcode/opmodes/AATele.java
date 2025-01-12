@@ -213,7 +213,7 @@ public class AATele extends LinearOpMode{
                 Action toOuttake = new ParallelAction(
                         new SequentialAction(
                             new ParallelAction(turnWristPrep, armToBasketPrep, extendSlide),
-                            armToBasket,
+                            //armToBasket,
                             turnWrist));
                 loopUpdater.addAction(toOuttake);
                 //Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
@@ -224,10 +224,11 @@ public class AATele extends LinearOpMode{
                 Action turnWrist = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_SPECIMEN_CLAW, false);
                 Action openClaw = sampleIntake.getMoveClawAction(false, false);
                 Action raiseArm = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_RETRACT, true);
+                Action moveSlideToSpecimenPickup = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 1, true);
                 Action toOuttakeSample = new SequentialAction(
                         new ParallelAction(retractSlide, armToIntake),
                         turnWrist, openClaw, new SleepAction(0.2),
-                        raiseArm);
+                        new ParallelAction(raiseArm, moveSlideToSpecimenPickup));
                 loopUpdater.addAction(toOuttakeSample);
                 //Log.i("UpdateActions", "Intake prep added;  Actions Active: " +  loopUpdater.getActiveActions().size());
             }
@@ -315,10 +316,11 @@ public class AATele extends LinearOpMode{
             }  if(gamepad2.dpad_left){
                 Action moveArm = rotatingSlide.arm.getArmToPosition(rotatingSlide.arm.getMotorPositionAngle() - (10 * Math.min(1, (gamepad2.right_trigger+MIN_SLOW_MODE))), false);
                 loopUpdater.addAction(moveArm);
-            } if ((!gamepad2.dpad_down && !gamepad2.dpad_up) && rotatingSlide.slide.isLevelReached()){
-                //Log.v("manualControl AATele slide holdPosition", "is target reached? " + rotatingSlide.slide.isLevelReached());
-                Log.v("Slide Power", "invoking holdPosition at 3");
+            } if(smartGamepad2.dpad_up_released() || smartGamepad2.dpad_down_released()){
+                rotatingSlide.slide.forceSetPower();
                 rotatingSlide.slide.holdPosition();
+                Log.v("Slide Power", "invoking holdPositionA at 4 (gamepad 2)");
+
             }
             //player 1 also controls slides, but only fine-tuning and aiming for intake
             /*
@@ -326,11 +328,16 @@ public class AATele extends LinearOpMode{
             angle at full-ish extension: 85 degrees
             assume linear change for easy calculations for now. if bad, do trigonometry.
              */
-            if(smartGamepad1.dpad_up_pressed()){
+            if(smartGamepad1.dpad_up){
                 //rotatingSlide.slide.adjustLift(MIN_SLOW_MODE);
-                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() +
-                        3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
-                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
+                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1,
+                        rotatingSlide.slide.getPosition() + 1 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+                if(!rotatingSlide.getSlideExceedsHorizontalLimit(3)){
+                    rotatingSlide.slide.adjustLift(1 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+                } else{
+                    rotatingSlide.slide.forceSetPower();
+                }
+                //Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
                 double toAngle = rotatingSlide.arm.getMotorPositionAngle();
                 if(rotatingSlide.isHorizontal()){
                     toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
@@ -339,11 +346,14 @@ public class AATele extends LinearOpMode{
                 }
                 Log.v("armMotor moveProportional", "go to angle " + toAngle + " 5 degrees * " + (armToPosition / rotatingSlide.getSlideMaxHorizontalLimitInches()));
                 Action lowerSlideProportional = rotatingSlide.arm.getArmToPosition(toAngle, false);
-                loopUpdater.addAction(new ParallelAction(adjustSlide, lowerSlideProportional));
-            }  if(smartGamepad1.dpad_down_pressed()){
+                loopUpdater.addAction(new ParallelAction( lowerSlideProportional));
+            }  if(smartGamepad1.dpad_down){
                 //rotatingSlide.slide.adjustLift(-1 * MIN_SLOW_MODE);
-                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() - 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
-                Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
+                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1,
+                        rotatingSlide.slide.getPosition() - 1 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+
+                rotatingSlide.slide.adjustLift(-1 * Math.min(1, (gamepad1.right_trigger + MIN_SLOW_MODE)));
+                //Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
                 double toAngle = rotatingSlide.arm.getMotorPositionAngle();
                 if(rotatingSlide.isHorizontal()){
                     toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
@@ -352,7 +362,7 @@ public class AATele extends LinearOpMode{
                 }
                 Log.v("armMotor moveProportional", "go to angle " + toAngle + " 5 degrees * " + (armToPosition / rotatingSlide.getSlideMaxHorizontalLimitInches()));
                 Action lowerSlideProportional = rotatingSlide.arm.getArmToPosition(toAngle, false);
-                loopUpdater.addAction(new ParallelAction(adjustSlide, lowerSlideProportional));
+                loopUpdater.addAction(new ParallelAction( lowerSlideProportional));
             }  if(gamepad1.dpad_right){
                 leftFrontPower = DPAD_DRIVE*1.2;
                 rightFrontPower = -1 * DPAD_DRIVE;
@@ -364,10 +374,11 @@ public class AATele extends LinearOpMode{
                 leftBackPower = DPAD_DRIVE;
                 rightBackPower = -1 * DPAD_DRIVE;
 
-            } if ((!gamepad1.dpad_down && !gamepad1.dpad_up) && rotatingSlide.slide.isLevelReached()){
-                //Log.v("manualControl AATele slide holdPosition", "is target reached? " + rotatingSlide.slide.isLevelReached());
-                Log.v("Slide Power", "invoking holdPosition at 3");
+            } if(smartGamepad1.dpad_up_released() || smartGamepad1.dpad_down_released()){
+                rotatingSlide.slide.forceSetPower();
                 rotatingSlide.slide.holdPosition();
+                Log.v("Slide Power", "invoking holdPositionA at 4 (gamepad 1)");
+
             }
 
             if(smartGamepad2.left_bumper_pressed() && smartGamepad2.right_trigger < 0.3 ){
@@ -426,6 +437,7 @@ public class AATele extends LinearOpMode{
             telemetry.addData("Pose:", "heading: " + pose.heading);
             telemetry.addData("End of arm location:", ""+ (pose.position.x + pose.heading.real*(rotatingSlide.getHorizontalExpansionLength()+robotLengthFromCOM)));
             telemetry.update();
+            Log.v("hold power test", rotatingSlide.slide.printPowerAndVelocity());
             loopUpdater.updateAndRunAll();
 
 

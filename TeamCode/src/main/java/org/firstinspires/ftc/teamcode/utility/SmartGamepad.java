@@ -109,6 +109,13 @@ public class SmartGamepad extends Gamepad implements PeriodicUpdatingEntity{
         return right_stick_button && !previous.right_stick_button;
     }
 
+    public boolean dpad_up_released(){
+        return !dpad_up && previous.dpad_up;
+    }
+    public boolean dpad_down_released(){
+        return !dpad_down && previous.dpad_down;
+    }
+
     public class waitForButtons implements Action {
         String[] buttons;
         boolean cancelled = false;

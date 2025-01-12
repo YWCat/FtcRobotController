@@ -59,8 +59,8 @@ public class RotatingSlide {
     public static  int SLIDE_INTAKE_TICKS = 1300;
     public static  int ARM_INTAKE_TICKS = 2400; //in ticks
     public static double ARM_INTAKE_DEG = 90.0;
-    public static  double ARM_ABOVE_INTAKE_LOW_DEG = 80;
-    public static  double ARM_ABOVE_INTAKE_LOWEST_DEG = 85;
+    public static  double ARM_ABOVE_INTAKE_LOW_DEG = 78.75;
+    public static  double ARM_ABOVE_INTAKE_LOWEST_DEG = 82.5;
     public static  double ARM_ABOVE_INTAKE_HIGH_DEG = 67.5;
     public static  double SLIDE_RETRACT_IN = 0;
     public static  int ARM_VERTICAL_POS = 0;
@@ -149,7 +149,10 @@ public class RotatingSlide {
         return slide.getMaxHorizontalLimitInches();
     }
     public boolean getSlideExceedsHorizontalLimit(){
-        return slide.getExceedsHorizontalLimit();
+        return slide.getExceedsHorizontalLimit(0);
+    }
+    public boolean getSlideExceedsHorizontalLimit(double clearance){
+        return slide.getExceedsHorizontalLimit(clearance);
     }
     public double getHorizontalThresholdAngle(){
         return ARM_HORIZONTAL_THRESHOLD_DEG;

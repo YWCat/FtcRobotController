@@ -92,19 +92,22 @@ public class DualMotorSlide {
         this.TARGET_TOLERANCE_INCH = tol;
     }
 
-    public boolean getExceedsHorizontalLimit(){
+    public boolean getExceedsHorizontalLimit(double clearance){ //clearance is in inches
         int motorLPosition = slideMotorL.getCurrentPosition();
         int motorRPosition = slideMotorR.getCurrentPosition();
         double effectiveAngle =  rotatingSlide.getArmEffectiveAngle();
         if(effectiveAngle==0) {
             effectiveAngle = 0.00001;
         }
-        double calculatedEffMaxExt= inchToTicks(MAX_HORIZONTAL_LIMIT_IN / Math.cos((90- effectiveAngle)*Math.PI/180));
-        boolean exceeds = (motorLPosition>= effectiveMaxExtension || motorRPosition>= effectiveMaxExtension);
+        double calculatedEffMaxExt= inchToTicks((MAX_HORIZONTAL_LIMIT_IN) / Math.cos((90- effectiveAngle)*Math.PI/180));
+        boolean exceeds = (motorLPosition>= effectiveMaxExtension-clearance || motorRPosition>= effectiveMaxExtension-clearance);
         Log.i("horizontal limit slide extension", "slideL: " + motorLPosition + "slideR " + motorRPosition);
         Log.i("horizontal limit slide extension", "angle: " + effectiveAngle);
         Log.i("horizontal limit slide extension",  " limit1: " + effectiveMaxExtension + "limit2: "+calculatedEffMaxExt+ " exceeds: " + exceeds);
         return exceeds;
+    }
+    public boolean getExceedsHorizontalLimit(){
+        return getExceedsHorizontalLimit(0);
     }
     public double mapPower(double power){
         //Log.i("mapPower", String.format("power %4.2f, minPowerUp %4.2f, minPowerDown %4.2f", power, minPowerUp, minPowerDown));
@@ -165,14 +168,24 @@ public class DualMotorSlide {
     public void adjustLift(double velocityRatio){
         Log.i("Slide Power", "targetReached set to True at 1");
         targetReached = true;
+        double power = velocityRatio;
         double velocity = MAX_VELOCITY * velocityRatio;
         if (getRightEncoder() < effectiveMaxExtension || velocityRatio < 0){
-            slideMotorL.setVelocity(velocity);
-            slideMotorR.setVelocity(velocity);
+            slideMotorR.setPower(power);
+            slideMotorL.setPower(power);
+            //slideMotorL.setVelocity(velocity);
+            //slideMotorR.setVelocity(velocity);
+            Log.i("slide power", "adjust slide set power to " + power);
         } else {
             Log.i("slide power", "horizontal limit exceeded");
             holdPosition();
         }
+    }
+
+    public void forceSetPower(){
+        slideMotorR.setPower(0);
+        slideMotorL.setPower(0);
+        Log.v("slide power", "force power to be 0");
     }
 
     public void holdPosition() {
@@ -306,7 +319,7 @@ public class DualMotorSlide {
                     Log.v("Power Sync power calcs", String.format("PID C power: %4.2f, Min/Max map power: %4.2f", powerFromPIDF, mappedPower));
                     slideMotorL.setPower(powerL);
                     slideMotorR.setPower(powerR);
-                    //Log.v("Slide Power Sync", "Should set power: left: " + powerL + "right: " + powerR + ". Actual power: Left: " + slideMotorL.getPower() + " Right: " + slideMotorR.getPower());
+                    Log.v("Slide Power Sync", "Action Should set power: left: " + powerL + "right: " + powerR + ". Actual power: Left: " + slideMotorL.getPower() + " Right: " + slideMotorR.getPower());
                     return true;
 
                 } else {
@@ -352,7 +365,7 @@ public class DualMotorSlide {
             targetReached = false; //slide not in transition state
             slideMotorL.setPower(power);
             slideMotorR.setPower(power);
-            Log.i("Slide Power", String.format("set flat motor power: %4.2f ", power));
+            Log.i("Slide Power", String.format("setMotorPower Action set flat motor power: %4.2f ", power));
             return false;
         }
 
@@ -412,6 +425,11 @@ public class DualMotorSlide {
             }
             minPowerDown = MIN_POWER_DOWN_VERTICAL;
         }
+    }
+
+    //FOR DEBUG CONSTANTLY PRINTING MOTOR POWER
+    public String printPowerAndVelocity(){
+        return "leftP: " + slideMotorL.getPower() + " rightP:" + slideMotorR.getPower() + " leftV:" + slideMotorL.getVelocity() + " rightV:" + slideMotorR.getVelocity();
     }
 
     public double getHoldPower() {
