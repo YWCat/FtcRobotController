@@ -28,10 +28,8 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(adjustedPose)
-                .setTangent(Math.PI/2)
-                .lineToY(-32)
-                .splineToLinearHeading(new Pose2d(48,72*pos_multiplier, Math.PI),-Math.PI/2)
+        myBot.runAction(myBot.getDrive().actionBuilder(beginPose)
+                .splineToConstantHeading( new Vector2d(0-botLengthHalf+3,chamberY),3*Math.PI/2)
                 .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)

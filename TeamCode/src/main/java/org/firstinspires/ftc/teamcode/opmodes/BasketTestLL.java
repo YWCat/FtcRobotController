@@ -47,7 +47,7 @@ public class BasketTestLL extends LinearOpMode {
         //LLCam.xOffset = pos_multiplier*botLengthHalf;
         drive.LLCamClr = LLCamClr;
         RotatingSlide rotatingSlide = new RotatingSlide();
-        rotatingSlide.slide.setTolerance(1.0);
+        //rotatingSlide.slide.setTolerance(1.0);
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
         SampleIntakeClaw sampleIntake = new SampleIntakeClaw();
 
