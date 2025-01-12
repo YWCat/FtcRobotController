@@ -172,7 +172,7 @@ public class AATele extends LinearOpMode{
                         new SequentialAction(
                                 retractSlide1,
                                 new ParallelAction(retractSlide2, armToIntake),
-                                waitForA, armPickSample, closeClaw, new SleepAction(1),
+                                waitForA, armPickSample, closeClaw, new SleepAction(0.2),
                                 raiseArmAfterIntake));
                 if(rotatingSlide.isHorizontal()){
                     toIntake = new ParallelAction(
@@ -180,7 +180,7 @@ public class AATele extends LinearOpMode{
                             openClaw,
                             new SequentialAction(armToIntake,
                                     waitForA,
-                                    armPickSample, closeClaw, new SleepAction(1),
+                                    armPickSample, closeClaw, new SleepAction(0.2),
                                     raiseArmAfterIntake));
                 }
                 loopUpdater.addAction(toIntake);
@@ -231,6 +231,19 @@ public class AATele extends LinearOpMode{
                 loopUpdater.addAction(toOuttakeSample);
                 //Log.i("UpdateActions", "Intake prep added;  Actions Active: " +  loopUpdater.getActiveActions().size());
             }
+            if (smartGamepad1.left_trigger_pressed()){ //outtake + drop and go down
+                Action rollOuttake = sampleIntake.getMoveClawAction(false, false);
+                Action initialLowerSlide = rotatingSlide.slide.getSlideToPosition(Math.min(rotatingSlide.slide.getPosition(), RotatingSlide.SLIDE_RETRACT_IN), 1, false);
+                Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_IDLE_CLAW, false);
+                Action lowerSlideForIntake = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
+                Action lowerArmForIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_ABOVE_INTAKE_HIGH_DEG, 1, false);
+                Action outtakeAndLeave = new SequentialAction(rollOuttake,
+                        new SleepAction(0.2),
+                        //initialLowerSlide,
+                        new ParallelAction(turnWristDown, new SleepAction(0.2)),
+                        new ParallelAction(lowerSlideForIntake, new SequentialAction(new SleepAction(1), lowerArmForIntake)));
+                loopUpdater.addAction(outtakeAndLeave);
+            }
             if(smartGamepad2.right_trigger >0.9 && smartGamepad2.left_bumper_pressed()){
                 rotatingSlide.updateHangStatus(true);
                 rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -266,27 +279,20 @@ public class AATele extends LinearOpMode{
                         );
                 loopUpdater.addAction(hangSequence);
             }
-            if (smartGamepad1.left_trigger_pressed()){ //outtake + drop and go down
-                Action rollOuttake = sampleIntake.getMoveClawAction(false, false);
-                Action turnWristDown = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_IDLE_CLAW, false);
-                Action waitForLT = smartGamepad1.getWaitForButtons("left_trigger", false);
-                Action outtakeAndLeave = new SequentialAction(rollOuttake,
-                        new SleepAction(0.2),
-                        new ParallelAction(turnWristDown, new SleepAction(0.2)),
-                        rotatingSlide.retractSlide());
-                loopUpdater.addAction(outtakeAndLeave);
-            }
 
             if(smartGamepad1.right_bumper_pressed()){ //intake specimen and move slightly up
                 //if its currently closed, do open sequence and vise versa.
                 if(specimenIntake.isClawOpen()){
-                    Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, false);
-                    Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 0.4, false);
-                    loopUpdater.addAction(new SequentialAction(closeSpecimen, raiseSlide));
+                    Action raiseSlide1 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 1, false);
+                    Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, true);
+                    Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1, true);
+                    loopUpdater.addAction(
+                            new SequentialAction(raiseSlide1, closeSpecimen, raiseSlide)
+                    );
 
                 } else {
                     Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.4,  false);
-                    Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
+                    Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
                     Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
                     loopUpdater.addAction(new SequentialAction(lowerSlide, openSpecimen, new SleepAction(0.15), lowerSlide2));
 
@@ -322,9 +328,10 @@ public class AATele extends LinearOpMode{
              */
             if(smartGamepad1.dpad_up_pressed()){
                 //rotatingSlide.slide.adjustLift(MIN_SLOW_MODE);
-                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() + 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
+                double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() +
+                        3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
                 Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
-                double toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG;
+                double toAngle = rotatingSlide.arm.getMotorPositionAngle();
                 if(rotatingSlide.isHorizontal()){
                     toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
                             (RotatingSlide.ARM_ABOVE_INTAKE_LOWEST_DEG - RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG)
@@ -337,7 +344,7 @@ public class AATele extends LinearOpMode{
                 //rotatingSlide.slide.adjustLift(-1 * MIN_SLOW_MODE);
                 double armToPosition = Math.min(rotatingSlide.getSlideMaxHorizontalLimitInches() - 0.1, rotatingSlide.slide.getPosition() - 3 * Math.min(1, (gamepad1.right_trigger+MIN_SLOW_MODE)));
                 Action adjustSlide = rotatingSlide.slide.getSlideToPosition(armToPosition, 1, false);
-                double toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG;
+                double toAngle = rotatingSlide.arm.getMotorPositionAngle();
                 if(rotatingSlide.isHorizontal()){
                     toAngle = RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG +
                             (RotatingSlide.ARM_ABOVE_INTAKE_LOWEST_DEG - RotatingSlide.ARM_ABOVE_INTAKE_LOW_DEG)

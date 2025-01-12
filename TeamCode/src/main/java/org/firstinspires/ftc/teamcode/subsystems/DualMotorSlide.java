@@ -29,15 +29,15 @@ public class DualMotorSlide {
     private static final double TICKS_PER_REV = 537.7; //312 RPM
     private static final double PULLEY_DIAMETER_IN = (32 / 25.4);
     private double TARGET_TOLERANCE_INCH = 0.45;
-    private final double TARGET_STATIC_THREASHOLD = 20;
+    private final double TARGET_STATIC_THREASHOLD = 20; // in ticks??
 
-    private final int MAX_VERTICAL_LIMIT_TICKS = 4300;     // Hard limit: 283mm * 3 converted to ticks: 4543. Also note slide cannot be fully retracted by 1cm.
+    private final int MAX_VERTICAL_LIMIT_TICKS = 4400;     // Hard limit: 283mm * 3 converted to ticks: 4543. Also note slide cannot be fully retracted by 1cm.
     private final int MAX_HORIZONTAL_LIMIT_TICKS = 2090;   // to avoid exceed 42 inch
     private final double MAX_HORIZONTAL_LIMIT_IN = 15.38;
     public int effectiveMaxExtension = MAX_VERTICAL_LIMIT_TICKS;
 
     public static double MIN_POWER_UP_VERTICAL_HIGH = 0.5;
-    public static double MIN_POWER_UP_VERTICAL = 0.3;
+    public static double MIN_POWER_UP_VERTICAL = 0.15;
     public static double MIN_POWER_DOWN_VERTICAL = 0.0;
 
 
@@ -84,7 +84,7 @@ public class DualMotorSlide {
         coefficients.kP = kP;
         coefficients.kI = kI;
         coefficients.kD = kD;
-        pidfController = new PIDFController(coefficients, 0.0, 0.0, getHoldPower());
+        pidfController = new PIDFController(coefficients, 0.0, 0.0, 0.0 /*getHoldPower()*/);
         //Log.v("PIDLift: status: ", "init");
     }
 
@@ -99,11 +99,11 @@ public class DualMotorSlide {
         if(effectiveAngle==0) {
             effectiveAngle = 0.00001;
         }
-        double calculatedEME= inchToTicks(MAX_HORIZONTAL_LIMIT_IN / Math.cos((90- effectiveAngle)*Math.PI/180));
+        double calculatedEffMaxExt= inchToTicks(MAX_HORIZONTAL_LIMIT_IN / Math.cos((90- effectiveAngle)*Math.PI/180));
         boolean exceeds = (motorLPosition>= effectiveMaxExtension || motorRPosition>= effectiveMaxExtension);
-        Log.i("horizontal limit", "slideL: " + motorLPosition + "slideR " + motorRPosition);
-        Log.i("horizontal limit", "angle: " + effectiveAngle);
-        Log.i("horizontal limit",  " limit1: " + effectiveMaxExtension + "limit2: "+calculatedEME+ " exceeds: " + exceeds);
+        Log.i("horizontal limit slide extension", "slideL: " + motorLPosition + "slideR " + motorRPosition);
+        Log.i("horizontal limit slide extension", "angle: " + effectiveAngle);
+        Log.i("horizontal limit slide extension",  " limit1: " + effectiveMaxExtension + "limit2: "+calculatedEffMaxExt+ " exceeds: " + exceeds);
         return exceeds;
     }
     public double mapPower(double power){
@@ -153,19 +153,20 @@ public class DualMotorSlide {
                 factor = 0.667;
             }
         }
-        Log.v("Slide Sync", ""+factor);
+        Log.v("power Sync", ""+factor);
 
         if (powerR * factor > 1.0) {
             powerL /= factor;
         } else {
             powerR *= factor;
         }
+        Log.v("slide power Sync", "left power: "+powerL + "right power: " + powerR);
     }
     public void adjustLift(double velocityRatio){
         Log.i("Slide Power", "targetReached set to True at 1");
         targetReached = true;
         double velocity = MAX_VELOCITY * velocityRatio;
-        if (getLeftEncoder() < effectiveMaxExtension || velocityRatio < 0){
+        if (getRightEncoder() < effectiveMaxExtension || velocityRatio < 0){
             slideMotorL.setVelocity(velocity);
             slideMotorR.setVelocity(velocity);
         } else {
@@ -183,15 +184,15 @@ public class DualMotorSlide {
 
     private void updateTargetReached() {
         //if it has already reached a target, don't change it. only change when something has set it to not reached
-        double motorLVel;
+        double motorRVel;
         double targetPos, currPos;
 
-        motorLVel = Math.abs(slideMotorL.getVelocity());
-        currPos = slideMotorL.getCurrentPosition();
+        motorRVel = Math.abs(slideMotorR.getVelocity());
+        currPos = slideMotorR.getCurrentPosition();
         targetPos = inchToTicks(pidfController.targetPosition);
 
-        this.targetReached = (this.targetReached || (motorLVel <= TARGET_STATIC_THREASHOLD && Math.abs(targetPos - currPos) <= inchToTicks(TARGET_TOLERANCE_INCH)));
-
+        this.targetReached = (this.targetReached || (motorRVel <= TARGET_STATIC_THREASHOLD && Math.abs(targetPos - currPos) <= inchToTicks(TARGET_TOLERANCE_INCH)));
+        Log.v("Power sync target reached", this.targetReached+"");
         //telemetry.addData("slideMotorL.getVelocity() ", Math.abs(slideMotorL.getVelocity()));
         //telemetry.addData("lastError ", ticksToInches((int)Math.abs(targetPos - currPos)));
         //telemetry.addData("targetReached ", this.targetReached);
@@ -292,16 +293,20 @@ public class DualMotorSlide {
                 if(!isLevelReached() && (System.currentTimeMillis() - startTime < timeout) && !cancelled){
                     double measuredPositionL = ticksToInches(slideMotorL.getCurrentPosition());
                     double measuredPositionR = ticksToInches(slideMotorR.getCurrentPosition());
-                    double powerFromPIDF = pidfController.update(measuredPositionL);
+                    double powerFromPIDF = pidfController.update(measuredPositionR);
                     //if you want to add a constant upward power pls adjust kS instead
-                    Log.v("Slide Power Sync", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
-                    powerFromPIDF = mapPower(powerFromPIDF);
-                    powerL = powerFromPIDF;
-                    powerR = powerFromPIDF;
-                    updatePowerWithEncoderDiff(powerFromPIDF>0);
+                    Log.v("Slide Extension & Power Sync", String.format("Target pos: %4.2f, current left pos: %4.2f, current right pos: %4.2f, last error: %4.2f, velocity: %4.2f, set power to: %4.2f", pidfController.targetPosition, measuredPositionL, measuredPositionR, pidfController.lastError, slideMotorL.getVelocity(), powerFromPIDF));
+                    Log.v("Slide Extension", "Max extension: " + ticksToInches(effectiveMaxExtension));
+                    powerFromPIDF = powerFromPIDF + getHoldPower();
+                    Log.v("power sync 2", "after adding hold power" + powerFromPIDF);
+                    double mappedPower = mapPower(powerFromPIDF);
+                    powerL = mappedPower;
+                    powerR = mappedPower;
+                    updatePowerWithEncoderDiff(mappedPower>0);
+                    Log.v("Power Sync power calcs", String.format("PID C power: %4.2f, Min/Max map power: %4.2f", powerFromPIDF, mappedPower));
                     slideMotorL.setPower(powerL);
                     slideMotorR.setPower(powerR);
-                    Log.v("Slide Power Sync", "Should set power: left: " + powerL + "right: " + powerR + ". Actual power: Left: " + slideMotorL.getPower() + " Right: " + slideMotorR.getPower());
+                    //Log.v("Slide Power Sync", "Should set power: left: " + powerL + "right: " + powerR + ". Actual power: Left: " + slideMotorL.getPower() + " Right: " + slideMotorR.getPower());
                     return true;
 
                 } else {
@@ -418,8 +423,8 @@ public class DualMotorSlide {
                 Log.i("holdPower", "tall mode, 0.25");
                 return 0.25;
             } else {
-                Log.i("holdPower", "normal mode, 0.002");
-                return 0.002;
+                Log.i("holdPower", "normal mode " + 0.1);
+                return 0.1;
             }
         }
     }

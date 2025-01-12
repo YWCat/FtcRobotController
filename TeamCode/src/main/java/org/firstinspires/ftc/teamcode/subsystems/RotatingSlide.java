@@ -16,12 +16,10 @@ public class RotatingSlide {
 
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
-    public static final double SLIDE_CHAMBER_PREP_IN = 15.63;
+    public static final double SLIDE_CHAMBER_PREP_IN = 18.5;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final double SLIDE_CHAMBER_PLACE_IN = 11.59;
-    public static final double SLIDE_CHAMBER_HI_IN = 16;
-    public static final int SLIDE_PICK_UP_SPECIMEN_TICKS = 800;
-    public static final double SLIDE_PICK_UP_SPECIMEN_IN = 6.10;
+    public static final double SLIDE_CHAMBER_PLACE_IN = 14;
+    public static final double SLIDE_PICK_UP_SPECIMEN_IN = 2.9;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 
     //BASKET
@@ -121,7 +119,7 @@ public class RotatingSlide {
         Action retractSlide = slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, false);
         Action retractArm = arm.getArmToPosition(RotatingSlide.ARM_RETRACT,false);
         if(!moveSlide){
-            retractSlide = slide.getSlideToPosition(slide.getLeftEncoder(),1,  false);
+            retractSlide = slide.getSlideToPosition(slide.getRightEncoder(),1,  false);
         }
         if(!moveArm){
             retractArm = arm.getArmToPosition(arm.getMotorPositionTicks(),false);
