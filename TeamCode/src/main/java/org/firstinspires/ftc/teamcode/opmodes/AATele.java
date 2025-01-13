@@ -212,7 +212,8 @@ public class AATele extends LinearOpMode{
                 Action turnWrist = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
                 Action toOuttake = new ParallelAction(
                         new SequentialAction(
-                            new ParallelAction(turnWristPrep, armToBasketPrep, extendSlide),
+                            new ParallelAction(turnWristPrep, armToBasketPrep),
+                            extendSlide,
                             //armToBasket,
                             turnWrist));
                 loopUpdater.addAction(toOuttake);
@@ -254,9 +255,9 @@ public class AATele extends LinearOpMode{
                 Action flipWristAway = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_HANG_CLAW, false);
                 Action lowerArmLow = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_LOW_DEG, true);
                 Action lowerSlideLowFirst = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_FIRST_IN, 0.5, true);
-                Action lowerSlideLowSecond = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_IN, 0.8, true);
+                Action lowerSlideLowSecond = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_IN, 1, true);
                 Action lowerArmLowLock = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_LOW_LOCK_DEG, true);
-                Action lowerSlideLowLock = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_LOCK_IN, 0.8, true);
+                Action lowerSlideLowLock = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_LOCK_IN, 1, true);
                 Action waitForLB1 = smartGamepad2.getWaitForButtons("left_bumper", false);
 
                 Action powerMotorsHold = rotatingSlide.slide.getSetMotorPower(DualMotorSlide.HOLD_POWER_HANG, false);
@@ -299,7 +300,7 @@ public class AATele extends LinearOpMode{
                 } else {
                     Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.4,  false);
                     Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
-                    Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
+                    Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 1, true);
                     loopUpdater.addAction(new SequentialAction(lowerSlide, openSpecimen, new SleepAction(1), lowerSlide2));
 
                 }
