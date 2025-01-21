@@ -95,7 +95,7 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-        drive.setCamCorr(true, 0.9, 1,-3, -5.2, 2);
+        drive.setCamCorr(true, 0.9, 1,0, -7, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
@@ -145,11 +145,10 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-        drive.setCamCorr(true, 0.9, 1,-3, -5, 2);
+        drive.setCamCorr(true, 0.9, 1,0, -7, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
-
         Actions.runBlocking(new SequentialAction(
                 armToIntake,
                 new ParallelAction(closeClaw, new SleepAction(0.3))
@@ -196,11 +195,10 @@ public class BasketTestLL extends LinearOpMode {
                             ),
                         armToIntakePrep )
         );
-        drive.setCamCorr(true, 1, 1,-3.5, -7.5, 2);
+        drive.setCamCorr(true, 1, 1,-3, -9.5, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
-
 
         Actions.runBlocking(new SequentialAction(
                 armToIntake,
@@ -231,7 +229,7 @@ public class BasketTestLL extends LinearOpMode {
         // Basket to park
         Action toAscend = drive.actionBuilder(drive.pose)
                 .splineToSplineHeading(new Pose2d(pos_multiplier*37,pos_multiplier*(15),Math.PI/2), Math.PI/2)
-                .splineToLinearHeading(new Pose2d(pos_multiplier*16,pos_multiplier*(0),0), 0)
+                .splineToLinearHeading(new Pose2d(pos_multiplier*18,pos_multiplier*(0),0), 0)
                 .build();
         armToVertical = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_ASCEND_DEG, true);
         intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+10, 1.0, true);
@@ -247,10 +245,6 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-
-
-
-
 
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
     }
