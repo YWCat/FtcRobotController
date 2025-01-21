@@ -24,7 +24,7 @@ public final class ObservSweep1 extends LinearOpMode {
     static double botLengthHalf = 7.5;
 
     static double beginX = pos_multiplier*(0-botLengthHalf), beginY = pos_multiplier*(-botWidthHalf+72), beginH = Math.PI;
-    static double chamberY = pos_multiplier*(18+botWidthHalf);
+    static double chamberY = pos_multiplier*(15+botWidthHalf);
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -41,13 +41,13 @@ public final class ObservSweep1 extends LinearOpMode {
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1.0,  true);
+        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
         Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.3, true);
         //Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
         Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+2, 1, true);
         Action goFwdABit = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-(1*pos_multiplier))
+                .lineToY(chamberY-(2*pos_multiplier))
                 .build();
         //Drive Action
         Action startToChamber = drive.actionBuilder(beginPose)
@@ -59,7 +59,7 @@ public final class ObservSweep1 extends LinearOpMode {
                 .setTangent(Math.PI/2)
                 .lineToY(pos_multiplier*33)
                 .splineToLinearHeading(new Pose2d(-36*pos_multiplier, 24*pos_multiplier, 0), Math.PI/2)
-                .splineToLinearHeading(new Pose2d(-48*pos_multiplier,5*pos_multiplier,0), -Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-54*pos_multiplier,2*pos_multiplier,0), -Math.PI/2)
                 .setTangent(-Math.PI/2)
                 .lineToY(60*pos_multiplier)
                 .lineToY(45*pos_multiplier)
@@ -100,7 +100,7 @@ public final class ObservSweep1 extends LinearOpMode {
         Action hangSndSample = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
                 .lineToY(-65)
-                .splineToLinearHeading(new Pose2d(0,chamberY-2,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(-4,chamberY-2,Math.PI),Math.PI/2)
                 .build();
 
         raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
@@ -110,7 +110,7 @@ public final class ObservSweep1 extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new SequentialAction(closeSpecimen, new SleepAction(0.5)),
+                        new SequentialAction(closeSpecimen, new SleepAction(0.0)),
                         new ParallelAction(
                                 hangSndSample,
                                 raiseSlide
@@ -120,14 +120,14 @@ public final class ObservSweep1 extends LinearOpMode {
         Pose2d adjustedPose = new Pose2d(drive.pose.position.x,-24,Math.PI);
         Action backUpABit = drive.actionBuilder(adjustedPose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-5)
+                .lineToY(chamberY-6)
                 .build();
 
         Actions.runBlocking(
                 new SequentialAction(
                         backUpABit,
                         depositSlide,
-                        openSpecimen
+                        new SequentialAction(new SleepAction(0.1),openSpecimen)
                 )
         );
 
@@ -151,7 +151,7 @@ public final class ObservSweep1 extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new SequentialAction(closeSpecimen, new SleepAction(0.5)),
+                        new SequentialAction(new SleepAction(0.5),closeSpecimen, new SleepAction(0.0)),
                         new ParallelAction(
                                 hangThdSample,
                                 raiseSlide
@@ -161,13 +161,13 @@ public final class ObservSweep1 extends LinearOpMode {
         Pose2d adjustedPose2 = new Pose2d(drive.pose.position.x,-24,Math.PI);
         Action backUpABit2 = drive.actionBuilder(adjustedPose2)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-4)
+                .lineToY(chamberY-6)
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
                         backUpABit2,
                         depositSlide,
-                        openSpecimen
+                        new SequentialAction(new SleepAction(0.1),openSpecimen)
                 )
         );
 
