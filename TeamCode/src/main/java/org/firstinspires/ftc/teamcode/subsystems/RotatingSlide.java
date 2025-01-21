@@ -16,10 +16,10 @@ public class RotatingSlide {
 
     //Preset slide lengths in inches, need to be fine-tuned.
     //CHAMBER
-    public static final double SLIDE_CHAMBER_PREP_IN = 17.5;
+    public static final double SLIDE_CHAMBER_PREP_IN = 13;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final double SLIDE_CHAMBER_PLACE_IN = 13;
-    public static final double SLIDE_PICK_UP_SPECIMEN_IN = 2.4;
+    public static final double SLIDE_CHAMBER_PLACE_IN = 18.5;
+    public static final double SLIDE_PICK_UP_SPECIMEN_IN = 0;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 
     //BASKET
@@ -36,19 +36,19 @@ public class RotatingSlide {
     public static  int ARM_HANG_PREP_TICKS = 820;
     public static double ARM_HANG_PREP_DEG = 27.420;
     public static int ARM_HANG_LOW_TICKS = 2600;
-    public static double ARM_HANG_LOW_DEG = 86.940;
+    public static double ARM_HANG_LOW_DEG = 88.940;
     public static double SLIDE_HANG_LOW_FIRST_IN = 7;
-    public static double SLIDE_HANG_LOW_IN = 0.8;
-
+    public static double SLIDE_HANG_LOW_IN = 0.3;
 
     public static int ARM_HANG_LOW_LOCK_TICKS = 2020;
     public static double ARM_HANG_LOW_LOCK_DEG = 67.545;
     public static double SLIDE_HANG_LOW_LOCK_IN = 0.35;
+
     public static double SLIDE_HANG_HIGH_PREP_IN = 20.0;
     public static double ARM_HANG_HIGH_PREP_PREP_DEG = 75;
     public static double ARM_HANG_HIGH_PREP_DEG = 83;
-    public static double ARM_HANG_HIGH_SWING_DEG = 8.032;
-    public static double SLIDE_HANG_HIGH_SWING_IN = 2;
+    public static double ARM_HANG_HIGH_SWING_DEG = 1.032;
+    public static double SLIDE_HANG_HIGH_SWING_IN = 1;
     public static double ARM_HANG_HIGH_LOCK_DEG = -8.025;
     public static double SLIDE_HANG_HIGH_LOCK_IN = -0.3;
 

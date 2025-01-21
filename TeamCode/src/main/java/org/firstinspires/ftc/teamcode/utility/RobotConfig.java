@@ -12,9 +12,10 @@ public class RobotConfig {
     public static final String armMotor = "wormMotor"; //port 1
     public static final String slideMotorL = "leftSlide"; //Not yet implemented
     public static final String slideMotorR = "rightSlide"; //Not yet implemented
-    public static final String sampleServo = "sampleServo"; //port 5
+    public static final String sampleServo = "sampleServo"; //port 3
     public static final String specimenServo = "specimenServo"; //port 4
-    public static final String wrist = "wristServo";
+    public static final String specimenWrist = "specimenWrist"; //port 5
+    public static final String wrist = "wristServo"; //port 2
     public static final String distanceSensor = "distSample";
 
 

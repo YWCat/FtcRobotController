@@ -36,7 +36,7 @@ public class DualMotorSlide {
     private final double MAX_HORIZONTAL_LIMIT_IN = 15.38;
     public int effectiveMaxExtension = MAX_VERTICAL_LIMIT_TICKS;
 
-    public static double MIN_POWER_UP_VERTICAL_HIGH = 0.5;
+    public static double MIN_POWER_UP_VERTICAL_HIGH = 0.2;
     public static double MIN_POWER_UP_VERTICAL = 0.15;
     public static double MIN_POWER_DOWN_VERTICAL = 0.0;
 
@@ -54,11 +54,12 @@ public class DualMotorSlide {
     public double minPowerDown = 0.0;
 
     private boolean slideIsHorizontal = false;
-    public static double HOLD_POWER_HANG = -0.3;
+    public static double HOLD_POWER_HANG = -0.7;
     public static double HOLD_POWER_HANG_AIR = 0.1;
 
     private double powerL;
     private double powerR;
+    private int numVelocityLessThanZero = 0;
 
     private Telemetry telemetry;
     public SlideToPosition prevMoveSlideAction = null;
@@ -205,8 +206,13 @@ public class DualMotorSlide {
         motorRVel = Math.abs(slideMotorR.getVelocity());
         currPos = slideMotorR.getCurrentPosition();
         targetPos = inchToTicks(pidfController.targetPosition);
+        if(motorRVel <= 10 && currPos < 0.3){
+            numVelocityLessThanZero ++;
+        } else {
+            numVelocityLessThanZero = 0;
+        }
 
-        this.targetReached = (this.targetReached || (motorRVel <= TARGET_STATIC_THREASHOLD && Math.abs(targetPos - currPos) <= inchToTicks(TARGET_TOLERANCE_INCH)));
+        this.targetReached = (this.targetReached || (numVelocityLessThanZero > 10 || (motorRVel <= TARGET_STATIC_THREASHOLD && Math.abs(targetPos - currPos) <= inchToTicks(TARGET_TOLERANCE_INCH))));
         Log.v("Power sync target reached", this.targetReached+"");
         //telemetry.addData("slideMotorL.getVelocity() ", Math.abs(slideMotorL.getVelocity()));
         //telemetry.addData("lastError ", ticksToInches((int)Math.abs(targetPos - currPos)));

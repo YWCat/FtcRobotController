@@ -91,8 +91,9 @@ public class AATele extends LinearOpMode{
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-        Action openSpecimenInit = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
-        loopUpdater.addAction(openSpecimenInit);
+
+        Action initMoveSpecWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, false);
+        loopUpdater.addAction(initMoveSpecWrist);
 
         waitForStart();
         runtime.reset();
@@ -210,9 +211,10 @@ public class AATele extends LinearOpMode{
                 Action turnWristPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW, false);
                 Action armToBasket = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_BASKET_DEG, 0.5, true);
                 Action turnWrist = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
+                Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, true);
                 Action toOuttake = new ParallelAction(
                         new SequentialAction(
-                            new ParallelAction(turnWristPrep, armToBasketPrep, extendSlide),
+                            new ParallelAction(turnWristPrep, closeSpecimen, armToBasketPrep, extendSlide),
                             //armToBasket,
                             turnWrist));
                 loopUpdater.addAction(toOuttake);
@@ -254,7 +256,7 @@ public class AATele extends LinearOpMode{
                 Action flipWristAway = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_HANG_CLAW, false);
                 Action lowerArmLow = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_LOW_DEG, true);
                 Action lowerSlideLowFirst = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_FIRST_IN, 0.5, true);
-                Action lowerSlideLowSecond = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_IN, 0.8, true);
+                Action lowerSlideLowSecond = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_IN, 0.9, true);
                 Action lowerArmLowLock = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_HANG_LOW_LOCK_DEG, true);
                 Action lowerSlideLowLock = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_HANG_LOW_LOCK_IN, 0.8, true);
                 Action waitForLB1 = smartGamepad2.getWaitForButtons("left_bumper", false);
@@ -275,39 +277,65 @@ public class AATele extends LinearOpMode{
                 Action hangSequence = new SequentialAction(
                         new ParallelAction(flipWristAway, lowerArmLow,
                                 new SequentialAction(lowerSlideLowFirst, lowerSlideLowSecond)),
-                                lowerArmLowLock, powerMotorsHold,
+                                new ParallelAction(lowerArmLowLock, powerMotorsHold),
                         waitForLB1,
                         new ParallelAction(raiseSlidePrep, raiseArmPrepMid), new ParallelAction(powerMotorsStayInAir, raiseArmPrep),
                         waitForLB2,
                         new ParallelAction(raiseArmSwing, new SequentialAction(new SleepAction(0.5), lowerSlideSwing)),
                         powerMotorsHoldLock,
-                        lowerArmLock, new SleepAction(2), lowerSlideLock
+                        lowerArmLock, new SleepAction(0.75), lowerSlideLock
                         );
                 loopUpdater.addAction(hangSequence);
             }
 
             if(smartGamepad1.right_bumper_pressed()){ //intake specimen and move slightly up
                 //if its currently closed, do open sequence and vise versa.
-                if(specimenIntake.isClawOpen()){
+                if(specimenIntake.isWristAtIntakePosition()){
+                    Action openClaw = new SleepAction(0);
+                    if(!specimenIntake.isClawOpen()){
+                        openClaw = new SequentialAction(
+                                specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true),
+                                new SleepAction(0.2));
+
+                    }
+                    Action flipWrist1 = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, false);
                     Action raiseSlide1 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 1, false);
                     Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, true);
                     Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1, true);
+                    Action flipWrist2 = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.OUTTAKE_WRIST, true);
                     loopUpdater.addAction(
-                            new SequentialAction(raiseSlide1, closeSpecimen, raiseSlide)
+                            new SequentialAction(
+                                    new ParallelAction(openClaw, raiseSlide1),
+                                    closeSpecimen,
+                                    new ParallelAction(raiseSlide, flipWrist2)
+                            )
                     );
 
                 } else {
                     Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.4,  false);
                     Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
                     Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
-                    loopUpdater.addAction(new SequentialAction(lowerSlide, openSpecimen, new SleepAction(1), lowerSlide2));
+                    Action flipWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, true);
+                    loopUpdater.addAction(
+                            new SequentialAction(
+                                    lowerSlide,
+                                    openSpecimen,
+                                    new SleepAction(1),
+                                    new ParallelAction(lowerSlide2, flipWrist)
+                            )
+                    );
 
                 }
 
 
             } if (smartGamepad1.left_bumper_pressed()){
-                Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
-                loopUpdater.addAction(openSpecimen);
+                if(specimenIntake.isClawOpen()){
+                    Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, false);
+                    loopUpdater.addAction(closeSpecimen);
+                } else {
+                    Action openSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
+                    loopUpdater.addAction(openSpecimen);
+                }
             }
 
 
