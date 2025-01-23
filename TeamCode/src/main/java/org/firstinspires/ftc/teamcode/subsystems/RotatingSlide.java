@@ -18,7 +18,7 @@ public class RotatingSlide {
     //CHAMBER
     public static final double SLIDE_CHAMBER_PREP_IN = 13;
     public static final int ARM_CHAMBER_PREP_TICKS = 0; //in ticks
-    public static final double SLIDE_CHAMBER_PLACE_IN = 18.5;
+    public static final double SLIDE_CHAMBER_PLACE_IN = 19.5;
     public static final double SLIDE_PICK_UP_SPECIMEN_IN = 0;
     public static final int ARM_CHAMBER_PLACE_TICKS = 0; //in ticks
 

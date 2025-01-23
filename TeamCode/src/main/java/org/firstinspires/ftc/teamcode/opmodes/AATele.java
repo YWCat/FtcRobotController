@@ -292,12 +292,13 @@ public class AATele extends LinearOpMode{
                 //if its currently closed, do open sequence and vise versa.
                 if(specimenIntake.isWristAtIntakePosition()){
                     Action openClaw = new SleepAction(0);
+                    /*
                     if(!specimenIntake.isClawOpen()){
                         openClaw = new SequentialAction(
                                 specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true),
                                 new SleepAction(0.2));
 
-                    }
+                    }*/
                     Action flipWrist1 = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, false);
                     Action raiseSlide1 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 1, false);
                     Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.CLOSE, true);
@@ -305,14 +306,14 @@ public class AATele extends LinearOpMode{
                     Action flipWrist2 = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.OUTTAKE_WRIST, true);
                     loopUpdater.addAction(
                             new SequentialAction(
-                                    new ParallelAction(openClaw, raiseSlide1),
+                                    new ParallelAction(raiseSlide1),
                                     closeSpecimen,
                                     new ParallelAction(raiseSlide, flipWrist2)
                             )
                     );
 
                 } else {
-                    Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.4,  false);
+                    Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.7,  false);
                     Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
                     Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
                     Action flipWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, true);
