@@ -1,38 +1,42 @@
 package com.example.meepmeeptesting;
 
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
-import com.noahbres.meepmeep.MeepMeep;
-import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
-import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+
+import org.rowlandhall.meepmeep.MeepMeep;
+import org.rowlandhall.meepmeep.roadrunner.DefaultBotBuilder;
+import org.rowlandhall.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 public class MeepMeepTesting {
-    static int pos_multiplier = -1;
-    static double botWidthHalf = 7.25;
-    static double botLengthHalf = 7.5;
-    static double beginX = pos_multiplier*(0-botLengthHalf), beginY = pos_multiplier*(-botWidthHalf+72), beginH = Math.PI;
-    static double chamberY = pos_multiplier*(19+botWidthHalf);
-
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(800);
-        Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
-        Pose2d chamberPose = new Pose2d(beginX, chamberY, beginH);
-        Vector2d splinepos1 = new Vector2d(24,-36);
-        Vector2d splinepos2 = new Vector2d(45-botLengthHalf,-18);
-        Pose2d splinepos3 = new Pose2d(55,-10,0);
-        Vector2d pickupPose = new Vector2d(48, -72);
-        Pose2d adjustedPose = new Pose2d(0,-24,0);
+        double botWidthHalf = 7.25;
+        double botLengthHalf = 7.5;
+        double beginX = (botWidthHalf), beginY = -1*(-botLengthHalf+72), beginH = 0; //-Math.PI/2;
+        double chamberX = beginX - 6, chamberY = (-15-botWidthHalf);
+        Pose2d beginPose = new Pose2d(beginX,beginY,beginH);
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-                .build();
+                .followTrajectorySequence(drive -> drive.trajectorySequenceBuilder(beginPose)
+                        .setTangent(Math.PI/2)
+                        .splineToConstantHeading( new Vector2d(chamberX,chamberY),3*Math.PI/2)
+                        //.lineTo(new Vector2d(beginX,-1*33))
+                        .splineToLinearHeading(new Pose2d(-34*-1, 24*-1, 0), Math.PI/2)
+                        .splineToLinearHeading(new Pose2d(48,-5,0), -Math.PI/2)
+                        .setTangent(-Math.PI/2)
+                        .lineTo(new Vector2d(48,-60))
+                        .lineTo(new Vector2d(48,-12))
+                        .splineToConstantHeading(new Vector2d(59, -13),-Math.PI/2)
+                        .lineTo(new Vector2d(59,-60))
+                        .lineTo(new Vector2d(59,-12))
+                        .splineToConstantHeading(new Vector2d(70, -13),-Math.PI/2)
+                        .lineTo(new Vector2d(70,-60))
+                        .lineTo(new Vector2d(70,-50))
+                        .build());
 
-        myBot.runAction(myBot.getDrive().actionBuilder(beginPose)
-                .splineToConstantHeading( new Vector2d(0-botLengthHalf+3,chamberY),3*Math.PI/2)
-                .build());
 
-        meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)
+        meepMeep.setBackground(MeepMeep.Background.FIELD_INTOTHEDEEP_JUICE_DARK)
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
                 .addEntity(myBot)

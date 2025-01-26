@@ -17,6 +17,7 @@ public class RobotConfig {
     public static final String specimenWrist = "specimenWrist"; //port 5
     public static final String wrist = "wristServo"; //port 2
     public static final String distanceSensor = "distSample";
+    public static final String ledLight = "led"; //port 2
 
 
 

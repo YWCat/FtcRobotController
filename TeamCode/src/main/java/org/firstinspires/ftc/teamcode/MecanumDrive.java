@@ -104,7 +104,7 @@ public final class MecanumDrive {
     private double pwrFct;
     private double thres = 0.5; //Tx, Ty alignement allowance
     private double timeOut;
-    private double min_move_pwr = 0.25;
+    private double min_move_pwr = 0.27;
     private double cam_kp=0.5, cam_ki=0, cam_kd = 0, ty_fac = 0.7;
     private int align_mode=0; // 0: align Tx Only. 1: align Tx and Ty
     public boolean endWErr = false;

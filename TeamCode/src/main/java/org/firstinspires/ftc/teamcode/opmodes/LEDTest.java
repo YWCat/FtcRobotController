@@ -39,9 +39,7 @@ import org.firstinspires.ftc.teamcode.utility.SmartGamepad;
  *   below the name of the Limelight on the top level configuration screen.
  */
 @TeleOp
-public class ZZTest extends LinearOpMode {
-
-    private Limelight3A limelight;
+public class LEDTest extends LinearOpMode {
     private SmartGamepad smartGamepad1 = null;
 
     @Override
@@ -49,12 +47,6 @@ public class ZZTest extends LinearOpMode {
     {
         Pose2d beginPose = new Pose2d(0, 0, 0);
         RobotCore robotCore  = new RobotCore(this);
-        MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
-        LimeLightColor LLCamClr = new LimeLightColor(hardwareMap);
-        //LLCam.xOffset = pos_multiplier*botLengthHalf;
-        drive.LLCamClr = LLCamClr;
-        RotatingSlide rotatingSlide = new RotatingSlide();
-        SampleIntakeClaw sampleIntake = new SampleIntakeClaw();
         Servo LED = robotCore.hardwareMap.get(Servo.class, RobotConfig.ledLight);
         double brightness = 0.5;
         LoopUpdater loopUpdater = new LoopUpdater();
@@ -73,51 +65,6 @@ public class ZZTest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (smartGamepad1.dpad_left_pressed()) {
-                drive.setCamCorr(true, 1, 0, 0,10, 2);
-                drive.alignByCam(true);
-                drive.setCamCorr(false, 1, 0, 0, 10, 2);
-            }
-            if (smartGamepad1.dpad_right_pressed()) {
-                drive.setCamCorr(true, 1, 0, 10, 10, 2);
-                drive.alignByCam(true);
-                drive.setCamCorr(false, 1, 0, 10, 10, 2);
-            }
-            if (smartGamepad1.dpad_up_pressed()) {
-                drive.setCamCorr(true, 0.5, 1,0, -7, 2);
-                drive.alignByCam(false);
-                drive.setCamCorr(false, 0.5, 1,0, -7, 2);
-            }
-            if (smartGamepad1.dpad_down_pressed()) {
-                drive.setCamCorr(true, 0.5, 1,10, -15, 2);
-                drive.alignByCam(false);
-                drive.setCamCorr(false, 0.5, 1,10, -15, 2);
-            }
-            if (gamepad1.a) {
-                telemetry.addData("tx", LLCamClr.getTxTyTa(1, 0, 1));
-                telemetry.addData("ty", LLCamClr.getTxTyTa(1, 1, 1));
-            }
-            if (gamepad1.b) {
-                drive.setCamCorr(true, 1, 1,-1, -6, 2);
-                drive.alignByCam(true);
-                drive.alignByCam(false);
-                drive.disCamCorr();
-            }
-
-            if (smartGamepad1.x_pressed()) {
-                Action wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
-                loopUpdater.addAction(wristOutPrep);
-            }
-            if (smartGamepad1.y_pressed()) {
-                Action wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW, true);
-                loopUpdater.addAction(wristIntake);
-            }
-            if (smartGamepad1.right_bumper_pressed()) {
-                intake -= 0.02;
-                Action wristIntakeInc = sampleIntake.getTurnWristAction(intake, true);
-                loopUpdater.addAction(wristIntakeInc);
-                telemetry.addData("wrist = %0f", intake);
-            }
             if (smartGamepad1.left_bumper_pressed()) {
                 brightness += 0.1;
                 LED.setPosition(brightness);

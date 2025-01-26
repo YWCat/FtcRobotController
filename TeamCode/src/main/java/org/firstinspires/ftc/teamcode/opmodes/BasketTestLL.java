@@ -11,12 +11,14 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.LimeLightColor;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
 import org.firstinspires.ftc.teamcode.subsystems.SampleIntakeClaw;
 import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
+import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 @Config
@@ -26,7 +28,7 @@ public class BasketTestLL extends LinearOpMode {
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
     static double beginX = pos_multiplier*(24+botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = Math.PI/2;
-    static double basket_X = pos_multiplier*(58), basket_Y = pos_multiplier*(54), basket_H = Math.PI/4;
+    static double basket_X = pos_multiplier*(58+1), basket_Y = pos_multiplier*(54+1), basket_H = Math.PI/4;
     static double sample1_X = pos_multiplier*(52-1), sample_Y = pos_multiplier*(32+6+botLengthHalf), sample1_H = Math.PI/2;
 
     @Override
@@ -34,11 +36,11 @@ public class BasketTestLL extends LinearOpMode {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
         Pose2d basket1Pose = new Pose2d(basket_X, basket_Y, basket_H);
-        Pose2d basket2Pose = new Pose2d(basket_X+2, basket_Y+2, basket_H);
-        Pose2d basket3Pose = new Pose2d(basket_X+1, basket_Y+2, basket_H);
+        Pose2d basket2Pose = new Pose2d(basket_X-2, basket_Y-2, basket_H);
+        Pose2d basket3Pose = new Pose2d(basket_X-2, basket_Y-2, basket_H);
         Pose2d sample1Pose = new Pose2d(sample1_X, sample_Y, sample1_H);
-        Pose2d sample2Pose = new Pose2d(sample1_X+pos_multiplier*(13), sample_Y+pos_multiplier*(-2), sample1_H);
-        Pose2d sample3Pose = new Pose2d(sample1_X+pos_multiplier*(10.5), sample_Y+pos_multiplier*(-8), Math.toRadians(130));
+        Pose2d sample2Pose = new Pose2d(sample1_X+pos_multiplier*(17), sample_Y+pos_multiplier*(2), sample1_H);
+        Pose2d sample3Pose = new Pose2d(sample1_X+pos_multiplier*(14), sample_Y+pos_multiplier*(-6), Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         drive.endWErr = true;
 
@@ -50,7 +52,9 @@ public class BasketTestLL extends LinearOpMode {
         //rotatingSlide.slide.setTolerance(1.0);
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
         SampleIntakeClaw sampleIntake = new SampleIntakeClaw();
+        Servo LED = robotCore.hardwareMap.get(Servo.class, RobotConfig.ledLight);
 
+        LED.setPosition(0.6);
         waitForStart();
 
         // To Basket, and dump preload sample
@@ -68,8 +72,8 @@ public class BasketTestLL extends LinearOpMode {
                         new ParallelAction(
                                 toBasket,
                                 wristOutPrep,
-                                new SequentialAction(armToOut, outtakeSlide),
-                                specimenOpen
+                                new SequentialAction(armToOut, outtakeSlide)
+                                //specimenOpen
                         ),
                         new ParallelAction(wristOut, new SleepAction(0.1)),
                         new ParallelAction(openClaw, new SleepAction(0.3))
@@ -95,7 +99,8 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-        drive.setCamCorr(true, 0.9, 1,0, -7, 2);
+
+        drive.setCamCorr(true, 0.9, 1,0, -5.5, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
@@ -145,10 +150,11 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-        drive.setCamCorr(true, 0.9, 1,0, -7, 2);
+        drive.setCamCorr(true, 0.9, 1,0, -5.3, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
+
         Actions.runBlocking(new SequentialAction(
                 armToIntake,
                 new ParallelAction(closeClaw, new SleepAction(0.3))
@@ -195,10 +201,11 @@ public class BasketTestLL extends LinearOpMode {
                             ),
                         armToIntakePrep )
         );
-        drive.setCamCorr(true, 1, 1,-3, -9.5, 2);
+        drive.setCamCorr(true, 1, 1,-2.8, -6.3, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
+        LED.setPosition(0);
 
         Actions.runBlocking(new SequentialAction(
                 armToIntake,

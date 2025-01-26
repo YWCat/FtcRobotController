@@ -13,57 +13,48 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.RotatingSlide;
+import org.firstinspires.ftc.teamcode.subsystems.SampleIntakeClaw;
 import org.firstinspires.ftc.teamcode.subsystems.SpecimenIntake;
 import org.firstinspires.ftc.teamcode.utility.RobotCore;
 
 @Config
-@Autonomous(name="ObservSwp1", group="Autonomous")
-public final class ObservSweep1 extends LinearOpMode {
-    static int pos_multiplier = -1;
+@Autonomous(name="ObservNew", group="Autonomous")
+public final class ObservNew extends LinearOpMode {
     static double botWidthHalf = 7.25;
     static double botLengthHalf = 7.5;
 
-    static double beginX = pos_multiplier*(0-botLengthHalf), beginY = pos_multiplier*(-botWidthHalf+72), beginH = Math.PI;
-    static double chamberY = pos_multiplier*(15+botWidthHalf);
+    double beginX = (botLengthHalf), beginY = (-72+botWidthHalf), beginH = 0;
+    double chamberX = beginX - 10, chamberY = (-18-botWidthHalf);
 
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
-        Pose2d chamberPose = new Pose2d(beginX-1, chamberY, beginH);
-        Pose2d observPose = new Pose2d(-67*pos_multiplier, 60*pos_multiplier, 0);
+        Pose2d chamberPose = new Pose2d(chamberX, chamberY, beginH);
+        Pose2d observPose = new Pose2d(-67, 60, 0);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         RobotCore robotCore  = new RobotCore(this);
         RotatingSlide rotatingSlide = new RotatingSlide();
         rotatingSlide.slide.setTolerance(1.0);
         SpecimenIntake specimenIntake = new SpecimenIntake(); //actually the most useless class, but its for the sake of abstraction
-
+        SampleIntakeClaw sampleIntake = new SampleIntakeClaw();
         // Specimen Actions
         Action closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
         Action openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
-        Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.3, true);
+        Action raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1.0,  true);
+        Action depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 1.0, true);
         //Action dropSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_PICK_UP_SPECIMEN_IN, 0.4, true);
-        Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+2, 1, true);
+        Action retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         Action goFwdABit = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-(2*pos_multiplier))
+                .lineToY(chamberY+(3))
                 .build();
         //Drive Action
         Action startToChamber = drive.actionBuilder(beginPose)
-                //.setTangent(Math.PI/2)
-                //.lineToY(chamberY)
-                .splineToConstantHeading( new Vector2d(0+botLengthHalf-1,chamberY),3*Math.PI/2)
-                .build();
-        Action sweepTheSamples = drive.actionBuilder(chamberPose)
                 .setTangent(Math.PI/2)
-                .lineToY(pos_multiplier*33)
-                .splineToLinearHeading(new Pose2d(-36*pos_multiplier, 24*pos_multiplier, 0), Math.PI/2)
-                .splineToLinearHeading(new Pose2d(-54*pos_multiplier,2*pos_multiplier,0), -Math.PI/2)
-                .setTangent(-Math.PI/2)
-                .lineToY(60*pos_multiplier)
-                .lineToY(45*pos_multiplier)
+                .splineToConstantHeading( new Vector2d(chamberX,chamberY),Math.PI/2)
                 .build();
+
 
         waitForStart();
         // Move to chamber and deposit specimen
@@ -79,6 +70,23 @@ public final class ObservSweep1 extends LinearOpMode {
                         new SequentialAction(openSpecimen,new SleepAction(0.05))
                 )
         );
+
+        Action sweepTheSamples = drive.actionBuilder(drive.pose)
+                .setTangent(Math.PI/2)
+                .lineToY(-1*33)
+                .splineToLinearHeading(new Pose2d(36, 24*-1, 0), Math.PI/2)
+                .splineToLinearHeading(new Pose2d(48,-4,0), -Math.PI/2)
+                .setTangent(-Math.PI/2)
+                .lineToY(-60)
+                .lineToY(-50)
+                //.splineToConstantHeading(new Vector2d(54, -5),-Math.PI/2)
+                //.lineToY(-60)
+                //.lineToY(-10)
+                //.splineToConstantHeading(new Vector2d(60, -5),-Math.PI/2)
+                //.lineToY(-60)
+                //.lineToY(-50)
+
+                .build();
         //push the samples in the observation zone
         Actions.runBlocking(new ParallelAction(retractSlide, sweepTheSamples)
         );
@@ -87,98 +95,107 @@ public final class ObservSweep1 extends LinearOpMode {
                 .setTangent(0)
                 .lineToX(48)
                 .setTangent(Math.PI/2)
-                .lineToY(-71)
+                .lineToY(-73.5)
                 .build();
+        Action specWristToPick= specimenIntake.getMoveSpecimenWrist(specimenIntake.INTAKE_WRIST, true);
         Actions.runBlocking(
                 new ParallelAction(
                         repickSpec,
-                        openSpecimen
+                        specWristToPick
                 )
         );
-
-        //Hang specimen on high chamber
+        //Hang 2nd specimen on high chamber
         Action hangSndSample = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
                 .lineToY(-65)
-                .splineToLinearHeading(new Pose2d(-4,chamberY-2,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(2,chamberY,0),Math.PI/2)
                 .build();
-
-        raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
+        Action specWristToPlace = specimenIntake.getMoveSpecimenWrist(specimenIntake.OUTTAKE_WRIST, true);
+        raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1.0,  true);
         closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
-        depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.3, true);
+        depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 1.0, true);
         openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
-
+        // Close spec claw, move to chamber (raiseSilde, specWrist prep)
         Actions.runBlocking(
                 new SequentialAction(
                         new SequentialAction(closeSpecimen, new SleepAction(0.0)),
                         new ParallelAction(
                                 hangSndSample,
-                                raiseSlide
+                                raiseSlide,
+                                specWristToPlace
                         )
                 )
         );
-        Pose2d adjustedPose = new Pose2d(drive.pose.position.x,-24,Math.PI);
-        Action backUpABit = drive.actionBuilder(adjustedPose)
+        Action goBckABit = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-6)
+                .lineToY(drive.pose.position.y-1)
                 .build();
-
         Actions.runBlocking(
                 new SequentialAction(
-                        backUpABit,
+                        goBckABit,
                         depositSlide,
-                        new SequentialAction(new SleepAction(0.1),openSpecimen)
+                        new SequentialAction(new SleepAction(0.05),openSpecimen)
                 )
         );
 
+        // Go back to Observ zone to repick
         Action goToRepick2 = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
                 .lineToY(-30)
-                .splineToLinearHeading(new Pose2d(50,69*pos_multiplier, 0),-Math.PI/2)
+                .splineToConstantHeading(new Vector2d(50,-73),-Math.PI/2) //make sure to hit wall
                 .build();
-        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+1.75, 1, true);
+        specWristToPick = specimenIntake.getMoveSpecimenWrist(specimenIntake.INTAKE_WRIST, true);
+        retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
 
-        Actions.runBlocking(new ParallelAction(goToRepick2,new SequentialAction(new SleepAction(0.3),retractSlide)));
-        Action hangThdSample = drive.actionBuilder(drive.pose)
+        Actions.runBlocking(new ParallelAction(goToRepick2,specWristToPick,
+                new SequentialAction(new SleepAction(0.3),retractSlide)));
+
+        // Hang 3rd
+        Pose2d SndRepickPose = new Pose2d(drive.pose.position.x,-72,0);
+        Action hangThdSample = drive.actionBuilder(SndRepickPose)
                 .setTangent(Math.PI/2)
-                .lineToY(-65)
-                .splineToLinearHeading(new Pose2d(0,chamberY-3,Math.PI),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(4,chamberY-3,0),Math.PI/2)
                 .build();
-        raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN+2, 1.0,  true);
+        raiseSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PREP_IN, 1.0,  true);
         closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
-        depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.3, true);
+        specWristToPlace = specimenIntake.getMoveSpecimenWrist(specimenIntake.OUTTAKE_WRIST, true);
+        depositSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 1.0, true);
         openSpecimen= specimenIntake.getMoveSpecimenIntake(specimenIntake.OPEN, true);
+
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new SequentialAction(new SleepAction(0.5),closeSpecimen, new SleepAction(0.0)),
+                        new SequentialAction(new SleepAction(0.5),closeSpecimen),
                         new ParallelAction(
                                 hangThdSample,
-                                raiseSlide
+                                raiseSlide,
+                                specWristToPlace
                         )
                 )
         );
-        Pose2d adjustedPose2 = new Pose2d(drive.pose.position.x,-24,Math.PI);
-        Action backUpABit2 = drive.actionBuilder(adjustedPose2)
+        goBckABit = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
-                .lineToY(chamberY-6)
+                .lineToY(drive.pose.position.y-1)
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
-                        backUpABit2,
+                        goBckABit,
                         depositSlide,
-                        new SequentialAction(new SleepAction(0.1),openSpecimen)
+                        new SequentialAction(new SleepAction(0.05),openSpecimen)
                 )
         );
+        specWristToPick = specimenIntake.getMoveSpecimenWrist(specimenIntake.INTAKE_WRIST, true);
+
+
 
         Action goToPark = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
-                .lineToY(-30)
-                .splineToLinearHeading(new Pose2d(45,69*pos_multiplier, 0),-Math.PI/2)
+                .lineToY(-33)
+                .splineToLinearHeading(new Pose2d(45,-60, 0),Math.PI/2)
                 .build();
         retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);
-        Actions.runBlocking(new ParallelAction(goToPark,new SequentialAction(new SleepAction(0.3),retractSlide),closeSpecimen));
+        Actions.runBlocking(new ParallelAction(goToPark, specWristToPick, new SequentialAction(new SleepAction(0.3),retractSlide),closeSpecimen));
 
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
 

@@ -8,9 +8,11 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utility.RobotConfig;
 
 import java.util.List;
 
@@ -45,6 +47,7 @@ public class LLCamClrTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException
     {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        Servo LED = hardwareMap.get(Servo.class, RobotConfig.ledLight);
 
         telemetry.setMsTransmissionInterval(11);
 
@@ -57,6 +60,7 @@ public class LLCamClrTest extends LinearOpMode {
 
         telemetry.addData(">", "Robot Ready.  Press Play.");
         telemetry.update();
+        LED.setPosition(0.5);
         waitForStart();
 
         while (opModeIsActive()) {
