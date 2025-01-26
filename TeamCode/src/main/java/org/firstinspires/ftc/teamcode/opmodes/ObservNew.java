@@ -132,7 +132,7 @@ public final class ObservNew extends LinearOpMode {
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
-                        goBckABit,
+                        //goBckABit,
                         depositSlide,
                         new SequentialAction(new SleepAction(0.05),openSpecimen)
                 )
@@ -179,7 +179,7 @@ public final class ObservNew extends LinearOpMode {
                 .build();
         Actions.runBlocking(
                 new SequentialAction(
-                        goBckABit,
+                        //goBckABit,
                         depositSlide,
                         new SequentialAction(new SleepAction(0.05),openSpecimen)
                 )
