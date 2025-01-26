@@ -19,7 +19,7 @@ public class SpecimenIntake {
     public static moveSpecimenIntake prevMoveSpecimen = null;
     public static moveSpecimenWrist prevMoveWrist = null;
     public static final double INTAKE_WRIST = 0.825;
-    public static final double OUTTAKE_WRIST = 0.22;
+    public static final double OUTTAKE_WRIST = 0.24;
     public static final double OPEN = 0.35;
     public static final double CLOSE = 0.65;
     public SpecimenIntake(){
