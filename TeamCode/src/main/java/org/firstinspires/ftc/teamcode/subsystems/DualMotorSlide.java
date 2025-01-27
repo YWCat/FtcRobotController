@@ -29,7 +29,7 @@ public class DualMotorSlide {
     private static final double TICKS_PER_REV = 537.7; //312 RPM
     private static final double PULLEY_DIAMETER_IN = (32 / 25.4);
     private double TARGET_TOLERANCE_INCH = 0.45;
-    private final double TARGET_STATIC_THREASHOLD = 20; // in ticks??
+    private final double TARGET_STATIC_THRESHOLD = 20; // in ticks??
 
     private final int MAX_VERTICAL_LIMIT_TICKS = 4400;     // Hard limit: 283mm * 3 converted to ticks: 4543. Also note slide cannot be fully retracted by 1cm.
     private final int MAX_HORIZONTAL_LIMIT_TICKS = 2090;   // to avoid exceed 42 inch
@@ -37,7 +37,7 @@ public class DualMotorSlide {
     public int effectiveMaxExtension = MAX_VERTICAL_LIMIT_TICKS;
 
     public static double MIN_POWER_UP_VERTICAL_HIGH = 0.2;
-    public static double MIN_POWER_UP_VERTICAL = 0.15;
+    public static double MIN_POWER_UP_VERTICAL = 0.07;
     public static double MIN_POWER_DOWN_VERTICAL = 0.0;
 
 
@@ -204,15 +204,20 @@ public class DualMotorSlide {
         double targetPos, currPos;
 
         motorRVel = Math.abs(slideMotorR.getVelocity());
-        currPos = slideMotorR.getCurrentPosition();
-        targetPos = inchToTicks(pidfController.targetPosition);
-        if(motorRVel <= 10 && currPos < 0.3){
+        currPos = ticksToInches(slideMotorR.getCurrentPosition());
+        targetPos = (pidfController.targetPosition);
+        if(motorRVel <= 10 && currPos <= 0.6){
             numVelocityLessThanZero ++;
+            Log.i("slide power target reached", "times slide has hit bottom and cant move:" + numVelocityLessThanZero+"");
         } else {
             numVelocityLessThanZero = 0;
         }
+        boolean slideHitsBottom = numVelocityLessThanZero > 10;
+        boolean motorIsStopped = motorRVel <= TARGET_STATIC_THRESHOLD;
+        boolean errorWithinThreshold = Math.abs(targetPos - currPos) <= TARGET_TOLERANCE_INCH;
+        Log.i("slide power target reached cases", "slide hits bottom: " + slideHitsBottom + " motorIsStopped: " + motorIsStopped + " errorWithinThreshold: " + errorWithinThreshold);
 
-        this.targetReached = (this.targetReached || (numVelocityLessThanZero > 10 || (motorRVel <= TARGET_STATIC_THREASHOLD && Math.abs(targetPos - currPos) <= inchToTicks(TARGET_TOLERANCE_INCH))));
+        this.targetReached = (this.targetReached || (slideHitsBottom|| ( motorIsStopped && errorWithinThreshold)));
         Log.v("Power sync target reached", this.targetReached+"");
         //telemetry.addData("slideMotorL.getVelocity() ", Math.abs(slideMotorL.getVelocity()));
         //telemetry.addData("lastError ", ticksToInches((int)Math.abs(targetPos - currPos)));
@@ -453,7 +458,7 @@ public class DualMotorSlide {
                 return 0;
             }else {
                 Log.i("holdPower", "normal mode " + 0.1);
-                return 0.1;
+                return 0.05;
             }
         }
     }

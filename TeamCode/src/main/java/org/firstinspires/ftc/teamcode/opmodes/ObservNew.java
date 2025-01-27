@@ -177,15 +177,19 @@ public final class ObservNew extends LinearOpMode {
                 .setTangent(Math.PI/2)
                 .lineToY(drive.pose.position.y-1)
                 .build();
+        Action moveSpecs = drive.actionBuilder(drive.pose)
+                .setTangent(0)
+                .lineToX(drive.pose.position.x-6)
+                .build();
         Actions.runBlocking(
                 new SequentialAction(
                         //goBckABit,
                         depositSlide,
+                        moveSpecs,
                         new SequentialAction(new SleepAction(0.05),openSpecimen)
                 )
         );
         specWristToPick = specimenIntake.getMoveSpecimenWrist(specimenIntake.INTAKE_WRIST, true);
-
 
 
         Action goToPark = drive.actionBuilder(drive.pose)

@@ -99,7 +99,7 @@ public class SpecimenIntake {
                     //Log.i("specimenWrist RobotActions", "target pos: " + specimenWrist.getPosition());
                     return true;
                 } else {
-                    //Log.i("specimenWrist RobotActions", "target pos: " + specimenWrist.getPosition());
+                    Log.i("specimenWrist RobotActions", "target pos: " + specimenWrist.getPosition());
                     return false;
                 }
             }

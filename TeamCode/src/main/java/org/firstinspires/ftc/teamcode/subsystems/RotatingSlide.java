@@ -38,7 +38,7 @@ public class RotatingSlide {
     public static int ARM_HANG_LOW_TICKS = 2600;
     public static double ARM_HANG_LOW_DEG = 88.940;
     public static double SLIDE_HANG_LOW_FIRST_IN = 7;
-    public static double SLIDE_HANG_LOW_IN = 0.3;
+    public static double SLIDE_HANG_LOW_IN = -2.0;
 
     public static int ARM_HANG_LOW_LOCK_TICKS = 2020;
     public static double ARM_HANG_LOW_LOCK_DEG = 67.545;

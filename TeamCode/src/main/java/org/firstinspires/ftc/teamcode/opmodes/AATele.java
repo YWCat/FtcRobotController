@@ -94,6 +94,7 @@ public class AATele extends LinearOpMode{
 
         Action initMoveSpecWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, false);
         loopUpdater.addAction(initMoveSpecWrist);
+        Log.v("specimenWrist RobotActions init", "wrist moved to intake pos");
 
         waitForStart();
         runtime.reset();
@@ -313,7 +314,7 @@ public class AATele extends LinearOpMode{
                     );
 
                 } else {
-                    Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 0.7,  false);
+                    Action lowerSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_CHAMBER_PLACE_IN, 1,  false);
                     Action openSpecimen= specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
                     Action lowerSlide2 = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
                     Action flipWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, true);
@@ -336,6 +337,10 @@ public class AATele extends LinearOpMode{
                 } else {
                     Action openSpecimen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, false);
                     loopUpdater.addAction(openSpecimen);
+                }
+                if(!specimenIntake.isWristAtIntakePosition()){
+                    Action flipWrist = specimenIntake.getMoveSpecimenWrist(SpecimenIntake.INTAKE_WRIST, false);
+                    loopUpdater.addAction(flipWrist);
                 }
             }
 
