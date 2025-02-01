@@ -24,12 +24,12 @@ public final class ObservNew extends LinearOpMode {
     static double botLengthHalf = 7.5;
 
     double beginX = (botLengthHalf), beginY = (-72+botWidthHalf), beginH = 0;
-    double chamberX = beginX - 10, chamberY = (-18-botWidthHalf);
+    double chamberX = beginX - 10, chamberY = (-16-botWidthHalf);
 
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
-        Pose2d chamberPose = new Pose2d(chamberX, chamberY, beginH);
+        Pose2d chamberPose = new Pose2d(chamberX, chamberY+2, beginH);
         Pose2d observPose = new Pose2d(-67, 60, 0);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
@@ -65,7 +65,7 @@ public final class ObservNew extends LinearOpMode {
                                 closeSpecimen,
                                 raiseSlide
                         ),
-                        goFwdABit,
+                        //goFwdABit,
                         depositSlide,
                         new SequentialAction(openSpecimen,new SleepAction(0.05))
                 )
@@ -195,7 +195,7 @@ public final class ObservNew extends LinearOpMode {
         Action goToPark = drive.actionBuilder(drive.pose)
                 .setTangent(Math.PI/2)
                 .lineToY(-33)
-                .splineToLinearHeading(new Pose2d(45,-60, 0),Math.PI/2)
+                .splineToLinearHeading(new Pose2d(45,-65, 0),-Math.PI/2)
                 .build();
         retractSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN, 1, true);
         closeSpecimen = specimenIntake.getMoveSpecimenIntake(specimenIntake.CLOSE, true);

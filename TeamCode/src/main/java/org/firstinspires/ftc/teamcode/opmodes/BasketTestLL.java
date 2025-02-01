@@ -29,17 +29,17 @@ public class BasketTestLL extends LinearOpMode {
     static double botLengthHalf = 7.5;
     static double beginX = pos_multiplier*(24+botWidthHalf), beginY = pos_multiplier*(-botLengthHalf+72), beginH = Math.PI/2;
     static double basket_X = pos_multiplier*(58+1), basket_Y = pos_multiplier*(54+1), basket_H = Math.PI/4;
-    static double sample1_X = pos_multiplier*(52-1), sample_Y = pos_multiplier*(32+6+botLengthHalf), sample1_H = Math.PI/2;
+    static double sample1_X = pos_multiplier*(50), sample_Y = pos_multiplier*(32+8+botLengthHalf), sample1_H = Math.PI/2;
 
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d beginPose = new Pose2d(beginX, beginY, beginH);
         Pose2d basketPose = new Pose2d(basket_X, basket_Y, basket_H);
-        Pose2d basket1Pose = new Pose2d(basket_X, basket_Y, basket_H);
+        Pose2d basket1Pose = new Pose2d(basket_X+2, basket_Y+2, basket_H);
         Pose2d basket2Pose = new Pose2d(basket_X-2, basket_Y-2, basket_H);
         Pose2d basket3Pose = new Pose2d(basket_X-2, basket_Y-2, basket_H);
         Pose2d sample1Pose = new Pose2d(sample1_X, sample_Y, sample1_H);
-        Pose2d sample2Pose = new Pose2d(sample1_X+pos_multiplier*(17), sample_Y+pos_multiplier*(2), sample1_H);
+        Pose2d sample2Pose = new Pose2d(sample1_X+pos_multiplier*(17), sample_Y, sample1_H);
         Pose2d sample3Pose = new Pose2d(sample1_X+pos_multiplier*(14), sample_Y+pos_multiplier*(-6), Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
         drive.endWErr = true;
@@ -62,9 +62,9 @@ public class BasketTestLL extends LinearOpMode {
                 .splineToLinearHeading(basketPose, 3*Math.PI/2)
                 .build();
         Action armToOut = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_BASKET_TICKS_CLAW, true);
-        Action outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN-3, 1.0,  true);
-        Action wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW, true);
-        Action wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
+        Action outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN_AUTO, 1.0,  true);
+        Action wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW_AUTO, true);
+        Action wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW_AUTO, true);
         Action openClaw = sampleIntake.getMoveClawAction(false, true);
         Action specimenOpen = specimenIntake.getMoveSpecimenIntake(SpecimenIntake.OPEN, true);
         Actions.runBlocking(
@@ -84,10 +84,10 @@ public class BasketTestLL extends LinearOpMode {
         Action bskToFst = drive.actionBuilder(drive.pose)
                 .splineToLinearHeading(sample1Pose, Math.PI)
                 .build();
-        Action armToIntakePrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-10, true);
+        Action armToIntakePrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_PREP_DEG_AUTO, true);
         Action armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-3, true);
         Action intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+7, 0.8, true);
-        Action wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW, true);
+        Action wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW_AUTO, true);
         Action closeClaw = sampleIntake.getMoveClawAction(true, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -100,7 +100,7 @@ public class BasketTestLL extends LinearOpMode {
                 )
         );
 
-        drive.setCamCorr(true, 0.9, 1,0, -5.5, 2);
+        drive.setCamCorr(true, 0.9, 1,-2, -5.5, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
@@ -115,9 +115,9 @@ public class BasketTestLL extends LinearOpMode {
                 .splineToLinearHeading(basket1Pose, Math.PI/2)
                 .build();
         armToOut = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_BASKET_TICKS_CLAW, true);
-        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN-3, 1.0,  true);
-        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW, true);
-        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
+        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN_AUTO, 1.0,  true);
+        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW_AUTO, true);
+        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW_AUTO, true);
         openClaw = sampleIntake.getMoveClawAction(false, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -135,10 +135,10 @@ public class BasketTestLL extends LinearOpMode {
         Action bskToSnd = drive.actionBuilder(drive.pose)
                 .splineToLinearHeading(sample2Pose, Math.PI)
                 .build();
-        armToIntakePrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-10, true);
-        armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-2, true);
+        armToIntakePrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_PREP_DEG_AUTO, true);
+        armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG_AUTO, true);
         intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+7, 0.8, true);
-        wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW, true);
+        wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW_AUTO, true);
         closeClaw = sampleIntake.getMoveClawAction(true, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -150,11 +150,10 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-        drive.setCamCorr(true, 0.9, 1,0, -5.3, 2);
-        drive.alignByCam(true);
+        drive.setCamCorr(true, 0.9, 1,-2.0, -5.6, 2);
         drive.alignByCam(false);
+        drive.alignByCam(true);
         drive.disCamCorr();
-
         Actions.runBlocking(new SequentialAction(
                 armToIntake,
                 new ParallelAction(closeClaw, new SleepAction(0.3))
@@ -165,9 +164,9 @@ public class BasketTestLL extends LinearOpMode {
                 .splineToLinearHeading(basket2Pose, Math.PI/2)
                 .build();
         armToOut = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_BASKET_TICKS_CLAW, true);
-        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN-3, 1.0,  true);
-        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW, true);
-        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
+        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN_AUTO, 1.0,  true);
+        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW_AUTO, true);
+        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW_AUTO, true);
         openClaw = sampleIntake.getMoveClawAction(false, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -187,9 +186,9 @@ public class BasketTestLL extends LinearOpMode {
                 .build();
         Action armToVertical = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_VERTICAL_POS, true);
         armToIntakePrep = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-12, true);
-        armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG-2, true);
+        armToIntake = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_INTAKE_DEG_AUTO, true);
         intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+4, 0.8, true);
-        wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW, true);
+        wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_INTAKE_CLAW_AUTO, true);
         closeClaw = sampleIntake.getMoveClawAction(true, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -201,12 +200,12 @@ public class BasketTestLL extends LinearOpMode {
                             ),
                         armToIntakePrep )
         );
-        drive.setCamCorr(true, 1, 1,-2.8, -6.3, 2);
+        drive.setCamCorr(true, 1, 1,-3.4, -7.8, 2);
         drive.alignByCam(true);
         drive.alignByCam(false);
         drive.disCamCorr();
         LED.setPosition(0);
-
+        /*
         Actions.runBlocking(new SequentialAction(
                 armToIntake,
                 new ParallelAction(closeClaw, new SleepAction(0.3))
@@ -217,9 +216,9 @@ public class BasketTestLL extends LinearOpMode {
                 .splineToLinearHeading(basket3Pose, Math.PI/2)
                 .build();
         armToOut = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_BASKET_TICKS_CLAW, true);
-        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN-2, 1.0,  true);
-        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW, true);
-        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW, true);
+        outtakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_BASKET_IN_AUTO, 1.0,  true);
+        wristOutPrep = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_PREP_OUTTAKE_CLAW_AUTO, true);
+        wristOut = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_OUTTAKE_CLAW_AUTO, true);
         openClaw = sampleIntake.getMoveClawAction(false, true);
         Actions.runBlocking(
                 new SequentialAction(
@@ -239,7 +238,7 @@ public class BasketTestLL extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(pos_multiplier*18,pos_multiplier*(0),0), 0)
                 .build();
         armToVertical = rotatingSlide.arm.getArmToPosition(RotatingSlide.ARM_AUTO_ASCEND_DEG, true);
-        intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+10, 1.0, true);
+        intakeSlide = rotatingSlide.slide.getSlideToPosition(RotatingSlide.SLIDE_RETRACT_IN+12, 1.0, true);
         wristIntake = sampleIntake.getTurnWristAction(SampleIntakeClaw.WRIST_ASCEND, true);
         closeClaw = sampleIntake.getMoveClawAction(true, true);
         Actions.runBlocking(
@@ -252,7 +251,7 @@ public class BasketTestLL extends LinearOpMode {
                         )
                 )
         );
-
+*/
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
     }
 }

@@ -24,8 +24,10 @@ public class RotatingSlide {
 
     //BASKET
     public static final double SLIDE_BASKET_IN = 29.5;
+    public static final double SLIDE_BASKET_IN_AUTO = 27;
     public static  int ARM_BASKET_TICKS = -280; //ticks
     public static double ARM_BASKET_DEG = -9.363; //ticks
+    public static double ARM_BASKET_DEG_AUTO = -9;
     public static int ARM_AUTO_BASKET_TICKS = 380; // roller intake
     public static int ARM_AUTO_BASKET_TICKS_CLAW = (-400+100);
     public static double ARM_AUTO_ASCEND_DEG = 25;
@@ -57,6 +59,8 @@ public class RotatingSlide {
     public static  int SLIDE_INTAKE_TICKS = 1300;
     public static  int ARM_INTAKE_TICKS = 2400; //in ticks
     public static double ARM_INTAKE_DEG = 90.0;
+    public static double ARM_INTAKE_PREP_DEG_AUTO = 80.0;
+    public static double ARM_INTAKE_DEG_AUTO = 87.0;
     public static  double ARM_ABOVE_INTAKE_LOW_DEG = 74.25;
     public static  double ARM_ABOVE_INTAKE_LOWEST_DEG = 79.75;
     public static  double ARM_ABOVE_INTAKE_HIGH_DEG = 67.5;

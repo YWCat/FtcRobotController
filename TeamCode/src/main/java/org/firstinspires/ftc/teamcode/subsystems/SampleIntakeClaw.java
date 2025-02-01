@@ -28,15 +28,18 @@ public class SampleIntakeClaw {
     public static  double OPEN_POS_CLAW = 1;
 
     public static  double distanceThreshold = 2; //in inches
-    public static  double WRIST_INTAKE_CLAW = 0.455; //0.455;
+    public static  double WRIST_INTAKE_CLAW = 0.55;; //0.455;
+    public static  double WRIST_INTAKE_CLAW_AUTO = 0.55;;
     public static  double WRIST_ASCEND = 0.46;//0.49
-    public static  double WRIST_PREP_OUTTAKE_CLAW = 0.365; //0.39;
-    public static double WRIST_HANG_CLAW = 0.34;
-    public static  double WRIST_OUTTAKE_CLAW = 0.325; //0.365;
-    public static  double WRIST_INTAKE_SPECIMEN_CLAW = 0.4;
+    public static  double WRIST_PREP_OUTTAKE_CLAW = 0.49; //0.365;
+    public static  double WRIST_PREP_OUTTAKE_CLAW_AUTO = 0.49;
+    public static double WRIST_HANG_CLAW = 0.49;//0.34;
+    public static  double WRIST_OUTTAKE_CLAW = 0.46; //0.365;
+    public static  double WRIST_OUTTAKE_CLAW_AUTO = 0.46;
+    public static  double WRIST_INTAKE_SPECIMEN_CLAW = 0.52;
     public static  double WRIST_OUTTAKE_SPECIMEN_CLAW = 0.48;
-    public static  double WRIST_IDLE_CLAW = 0.44;
-    public static  double WRIST_INIT_CLAW = 0.48;
+    public static  double WRIST_IDLE_CLAW = 0.53;
+    public static  double WRIST_INIT_CLAW = 0.574;//0.48;
 
     public SampleIntakeClaw(){
         RobotCore robotCore = RobotCore.getRobotCore();
