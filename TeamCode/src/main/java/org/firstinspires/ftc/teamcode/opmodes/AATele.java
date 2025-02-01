@@ -216,7 +216,7 @@ public class AATele extends LinearOpMode{
                 Action toOuttake = new ParallelAction(
                         new SequentialAction(
                             new ParallelAction(turnWristPrep, closeSpecimen, armToBasketPrep, extendSlide),
-                            //armToBasket,
+                            armToBasket,
                             turnWrist));
                 loopUpdater.addAction(toOuttake);
                 //Log.i("UpdateActions", "Actions Active: " +  loopUpdater.getActiveActions().size());
@@ -244,7 +244,7 @@ public class AATele extends LinearOpMode{
                 Action outtakeAndLeave = new SequentialAction(rollOuttake,
                         new SleepAction(0.2),
                         //initialLowerSlide,
-                        new ParallelAction(turnWristDown, new SleepAction(0.2)),
+                        new ParallelAction(turnWristDown, new SleepAction(0.75)),
                         new ParallelAction(lowerSlideForIntake, new SequentialAction(new SleepAction(1), lowerArmForIntake)));
                 loopUpdater.addAction(outtakeAndLeave);
             }
@@ -284,7 +284,7 @@ public class AATele extends LinearOpMode{
                         waitForLB2,
                         new ParallelAction(raiseArmSwing, new SequentialAction(new SleepAction(0.5), lowerSlideSwing)),
                         powerMotorsHoldLock,
-                        lowerArmLock, new SleepAction(0.75), lowerSlideLock
+                        lowerArmLock, new SleepAction(2), lowerSlideLock
                         );
                 loopUpdater.addAction(hangSequence);
             }
