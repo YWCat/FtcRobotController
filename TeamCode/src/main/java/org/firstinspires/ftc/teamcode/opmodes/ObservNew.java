@@ -55,6 +55,8 @@ public final class ObservNew extends LinearOpMode {
                 .splineToConstantHeading( new Vector2d(chamberX,chamberY),Math.PI/2)
                 .build();
 
+        rotatingSlide.slide.resetEncoder();
+        rotatingSlide.arm.resetEncoder();
 
         waitForStart();
         // Move to chamber and deposit specimen
