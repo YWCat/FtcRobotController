@@ -119,10 +119,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        //rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -175,14 +175,15 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
             rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
+
+             */
 
             // Send calculated power to wheels
             //IMPORTANT: if you want to adjust how fast the robot is, change how much the power is divided by -B
-            leftFrontDrive.setPower(-leftFrontPower/2);
-            rightFrontDrive.setPower(-rightFrontPower/2);
-            leftBackDrive.setPower(-leftBackPower/2);
-            rightBackDrive.setPower(-rightBackPower/2);
+            leftFrontDrive.setPower(leftFrontPower/2);
+            rightFrontDrive.setPower(rightFrontPower/2);
+            leftBackDrive.setPower(leftBackPower/2);
+            rightBackDrive.setPower(rightBackPower/2);
             //The slides will always be raised to what the targetPos is set as
             Slides.raiseSlide(targetPos);
             //commented out code, might be useful later
