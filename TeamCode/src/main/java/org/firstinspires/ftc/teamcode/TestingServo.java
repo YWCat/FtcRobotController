@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
+//remove @Disabled to see the program on the driver station
 @Disabled
 //This is a test program for testing the servo positions of the outtake servo
 public class TestingServo extends OpMode {

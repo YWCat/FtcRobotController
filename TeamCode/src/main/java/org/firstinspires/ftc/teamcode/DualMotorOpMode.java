@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
+//remove @Disabled to see the program on the driver station
 @Disabled
 //This is a test program for determining the ideal height of the slides
 public class DualMotorOpMode extends OpMode{
