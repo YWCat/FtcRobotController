@@ -49,12 +49,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private Servo armServo = null;
     private Servo clawServo = null;
     private Servo dumpServo;
-    private double clawOpenPos = 0.5;
-    private double clawClosePos = 1.0;
-    private double clawTargetPos = 0.5;
+    private double clawOpenPos = 0.65;
+    private double clawAdjustPos = 0.75;
+    private double clawClosePos = 0.9;
+    private double clawTargetPos = 0.65;
     private double armUpPos = 0.55;
     private double armTransportPos = 0.25;
     private double armDwnDropPos = 0.22;
+    private double armDwnPickPos = 0.015;
     private double armDwnPlacePos = 0.0;
     private double armTargetPos = 0.55;
     private int armState;
@@ -67,6 +69,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private double dump_time;
     private double grabbedTime;
     private double openedTime;
+    private double openedTime2;
     private DcMotor linearSlide1;
     private DcMotor linearSlide2 ;
 
@@ -182,7 +185,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             if(armState == 1 && gamepad1.x){
                 telemetry.addLine("Closing Claw");
                 //Closes the claw
-                armTargetPos = armDwnPlacePos;
+                armTargetPos = armDwnPickPos;
                 clawTargetPos = clawClosePos;
                 //Creates a timestamp of when the claw has closed
                 grabbedTime = System.currentTimeMillis();
@@ -213,14 +216,19 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             //Checks to see if the claw is ready to open and if gamepad1.x is pressed
             if(armState == 4 && gamepad1.x){
                 telemetry.addLine("Opening Claw");
-                //Opens the claw
-                clawTargetPos = clawOpenPos;
+                //Opens the claw slightly
+                clawTargetPos = clawAdjustPos;
                 //Creates a timestamp of when the claw opened
                 openedTime = System.currentTimeMillis();
                 armState = 5;
             }
             //Checks if 0.5 seconds have elapsed since the claw has been opened
-            if(System.currentTimeMillis() - openedTime >= 1000 && armState == 5) {
+            if(System.currentTimeMillis() - openedTime >= 500 && armState == 5) {
+                clawTargetPos = clawOpenPos;
+                openedTime2 = System.currentTimeMillis();
+                armState = 6;
+            }
+            if(System.currentTimeMillis() - openedTime2 >= 2000 && armState == 6){
                 telemetry.addLine("Arm going up + reset");
                 //Moves the arm back up
                 armTargetPos = armUpPos;

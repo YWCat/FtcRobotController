@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 //remove @Disabled to see the program on the driver station
-@Disabled
+//@Disabled
 //This is a test program for testing the servo positions of the outtake servo
 public class ArmTestOpMode extends OpMode {
     private double clawOpenPos = 0.5;//targetpos2
