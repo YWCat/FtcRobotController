@@ -32,37 +32,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-
-/*
- * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
- *
- * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
- * This code will work with either a Mecanum-Drive or an X-Drive train.
- * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
- * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
- *
- * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
- *
- * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
- * Each motion axis is controlled by one Joystick axis.
- *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
- *
- * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
- * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
- * the direction of all 4 motors (see code below).
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
 
 @TeleOp(name="Drive", group="Linear OpMode")
 public class BasicOmniOpMode_Linear extends LinearOpMode {
@@ -74,27 +46,33 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DcMotor intakeMotor = null;
-    private Servo clawLeftServo = null;
+    private Servo armServo = null;
+    private Servo clawServo = null;
     private Servo dumpServo;
-    private double clawLeftOpen_pos = 0.6;//0.32 to grab, 1.0 to open
-    private double clawLeftClose_pos = 0.32;
-    private double clawLeftServo_pos = 0.34;
-    private Servo clawRightServo = null;
-    private double clawRightOpen_pos = 0.25;//0.25
-    private double clawRightClose_pos = 0.6;//0.6
-    private double clawRightServo_pos = 0.2;//0,
+    private double clawOpenPos = 0.5;
+    private double clawClosePos = 1.0;
+    private double clawTargetPos = 0.5;
+    private double armUpPos = 0.55;
+    private double armTransportPos = 0.25;
+    private double armDwnDropPos = 0.22;
+    private double armDwnPlacePos = 0.0;
+    private double armTargetPos = 0.55;
+    private int armState;
+
     //slide algorithm variables
-    private int targetPos = 0;
+    private double slideTargetPos = 0;
     private double Kp1 = 1;
     private double Kp2 = 1;
     private double rb_time;
     private double dump_time;
+    private double grabbedTime;
+    private double openedTime;
     private DcMotor linearSlide1;
     private DcMotor linearSlide2 ;
 
     @Override
     public void runOpMode() {
-
+        armState = 0;
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
         SlideSubsystem Slides = new SlideSubsystem(hardwareMap);
@@ -103,6 +81,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         intakeMotor = hardwareMap.get(DcMotor.class,"intakeMotor");
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+        armServo = hardwareMap.get(Servo.class, "armServo");
         dumpServo = hardwareMap.get(Servo.class, "dumpServo");
 
         //intakeMotor = hardwareMap.get(DcMotor.class,"eater");
@@ -119,10 +99,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -185,43 +165,78 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower/2);
             rightBackDrive.setPower(rightBackPower/2);
             //The slides will always be raised to what the targetPos is set as
-            Slides.raiseSlide(targetPos);
-            //commented out code, might be useful later
-            /*
-            if(gamepad1.dpad_up){
-                clawLeftServo_pos+=0.05;
-                clawLeftServo.setPosition(clawLeftOpen_pos);
-                sleep(300);
-                //clawLeftServo.setPosition(clawLeftClose_pos);
+            Slides.raiseSlide(slideTargetPos);
+            armServo.setPosition(armTargetPos);
+            clawServo.setPosition(clawTargetPos);
+            //Arm state machine
+
+            //Checks if gamepad1.a is pressed and if the current state of the arm is zero(default)
+            if(gamepad1.a && armState==0){
+                telemetry.addLine("Going to intake position");
+                //Sets the arm to the down position
+                armTargetPos = armDwnPlacePos;
+                //Registers the current state of the arm as 1(ready to grab)
+                armState = 1;
             }
-            if(gamepad1.dpad_down){
-                clawLeftServo_pos-=0.05;
-                clawLeftServo.setPosition(clawLeftClose_pos);
-                sleep(300);
-                //clawLeftServo.setPosition(clawLeftOpen_pos);
+            //Checks if the arm is ready to grab and that gamepad1.x is pressed
+            if(armState == 1 && gamepad1.x){
+                telemetry.addLine("Closing Claw");
+                //Closes the claw
+                armTargetPos = armDwnPlacePos;
+                clawTargetPos = clawClosePos;
+                //Creates a timestamp of when the claw has closed
+                grabbedTime = System.currentTimeMillis();
+                armState = 2;
+            }
+            //Checks if 0.5 seconds has elapsed after the claw has closed
+            if(System.currentTimeMillis() - grabbedTime >= 500 && armState == 2){
+                telemetry.addLine("Arm going Up");
+                //Sets the arm to the up position
+                armTargetPos = armTransportPos;
+                //Registers the current state of the arm as 3(transporting)
+                armState = 3;
+            }
+            if(gamepad1.x && armState == 3){
+                clawTargetPos = clawOpenPos;
+                armTargetPos = armDwnDropPos;
+                openedTime = System.currentTimeMillis();
+                armState = 5;
+            }
+            //Checks to see if gamepad1.b is pressed and that the robot is currently transporting something
+            if(gamepad1.b && (armState == 3)){
+                telemetry.addLine("Arm going down");
+                //Sets the arm to the down position
+                armTargetPos = armDwnPlacePos;
+                //Registers the state of the subsystem as 4(opening)
+                armState = 4;
+            }
+            //Checks to see if the claw is ready to open and if gamepad1.x is pressed
+            if(armState == 4 && gamepad1.x){
+                telemetry.addLine("Opening Claw");
+                //Opens the claw
+                clawTargetPos = clawOpenPos;
+                //Creates a timestamp of when the claw opened
+                openedTime = System.currentTimeMillis();
+                armState = 5;
+            }
+            //Checks if 0.5 seconds have elapsed since the claw has been opened
+            if(System.currentTimeMillis() - openedTime >= 1000 && armState == 5) {
+                telemetry.addLine("Arm going up + reset");
+                //Moves the arm back up
+                armTargetPos = armUpPos;
+                //Sets the state of the arm to 0(default position)
+                armState = 0;
             }
 
-            if(gamepad1.dpad_left){
-                clawRightServo_pos+=0.05;
-                clawRightServo.setPosition(clawRightOpen_pos);
-                sleep(300);
-                //clawRightServo.setPosition(clawRightOpen_pos);
-            }
-            if(gamepad1.dpad_right){
-                clawRightServo_pos-=0.05;
-                clawRightServo.setPosition(clawRightClose_pos);
-                sleep(300);
-                //clawRightServo.setPosition(clawRightClose_pos);
-            }
-             */
+
             //These two functions are for the slide. They set the targetPos, which the slides are constantly going towards
             //IMPORTANT: if you want to adjust the height the slide goes to, remember the targetPos is in TICKS
             //You may run the DualMotorOpMode to find out the current position of the slide motors, as well as adjust it little by little
             if(gamepad1.dpad_up){
-                targetPos = 2425;
+                slideTargetPos = 2425;
             }
             if(gamepad1.dpad_down){
-                targetPos = 0;
+                slideTargetPos = 0;
             }
 
             //This function does two things:
@@ -232,22 +247,23 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 dump_time = System.currentTimeMillis();
             }
             //If it has been more than 1 second since y was pressed, the dumpServo goes to the close position by default
-            if(System.currentTimeMillis()-dump_time > 1000){
+            if(System.currentTimeMillis()-dump_time > 1500){
                 dumpServo.setPosition(0.355);
             }
 
             //This works in a similar manner to the dumpServo
             //The intakeMotor starts intaking, and the time since right_bumper was last pressed is noted in rb_time
             if(gamepad1.right_bumper){
-                intakeMotor.setPower(-0.6);
+                intakeMotor.setPower(-0.5);
                 rb_time = System.currentTimeMillis();
             }
             //If it has been more than 0.8 seconds since right_bumper was pressed, the intakeMotor is set at 0 power
-            if(System.currentTimeMillis()- rb_time > 800) {
+            if(System.currentTimeMillis()- rb_time > 2000) {
                 intakeMotor.setPower(0);
             }
             // Quite shrimple, just tells you the information listed in the caption
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Arm State:", armState);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.update();

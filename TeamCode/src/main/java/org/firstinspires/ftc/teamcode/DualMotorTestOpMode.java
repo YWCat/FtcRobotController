@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 //remove @Disabled to see the program on the driver station
 @Disabled
 //This is a test program for determining the ideal height of the slides
-public class DualMotorOpMode extends OpMode{
+public class DualMotorTestOpMode extends OpMode{
     //variable we adjust for the slide to go up or down
     private double targetPos = 0;
     //constant that can be adjusted to change the PID

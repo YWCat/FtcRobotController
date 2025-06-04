@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static android.os.SystemClock.sleep;
-
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 //remove @Disabled to see the program on the driver station
 @Disabled
 //This is a test program for testing the servo positions of the outtake servo
-public class TestingServo extends OpMode {
+public class DumpTestOpMode extends OpMode {
     //our position for closing the outtake
     private double targetPos = 0.355;
     //our servo
