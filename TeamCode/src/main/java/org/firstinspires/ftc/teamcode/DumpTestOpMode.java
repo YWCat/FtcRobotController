@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 //This is a test program for testing the servo positions of the outtake servo
 public class DumpTestOpMode extends OpMode {
     //our position for closing the outtake
-    private double targetPos = 0.355;
+    private double targetPos = 0.405;
     //our servo
     private Servo dumpServo;
     boolean prev_dpad_up;
@@ -26,12 +26,12 @@ public class DumpTestOpMode extends OpMode {
     public void loop() {
         //press dpad_up to adjust the servo towards the close position
         if(gamepad1.dpad_up && !prev_dpad_up){
-            targetPos += 0.05;
+            targetPos += 0.005;
             telemetry.addLine("dpad_up pressed");
         }
         //press dpad_down to adjust the servo towards the open position
         if(gamepad1.dpad_down && !prev_dpad_down){
-            targetPos -= 0.05;
+            targetPos -= 0.005;
             telemetry.addLine("dpad_down pressed");
         }
         prev_dpad_up = gamepad1.dpad_up;

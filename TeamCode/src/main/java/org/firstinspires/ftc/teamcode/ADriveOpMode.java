@@ -32,12 +32,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Drive", group="Linear OpMode")
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+public class ADriveOpMode extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -65,13 +64,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private double slideTargetPos = 0;
     private double Kp1 = 1;
     private double Kp2 = 1;
-    private double rb_time;
+    private double sweep_time;
     private double dump_time;
     private double grabbedTime;
     private double openedTime;
     private double openedTime2;
-    private DcMotor linearSlide1;
-    private DcMotor linearSlide2 ;
+    private boolean intaking = false;
 
     @Override
     public void runOpMode() {
@@ -163,18 +161,20 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // Send calculated power to wheels
             //IMPORTANT: if you want to adjust how fast the robot is, change how much the power is divided by -B
-            leftFrontDrive.setPower(leftFrontPower/2);
-            rightFrontDrive.setPower(rightFrontPower/2);
-            leftBackDrive.setPower(leftBackPower/2);
-            rightBackDrive.setPower(rightBackPower/2);
+            leftFrontDrive.setPower(leftFrontPower*0.605);
+            rightFrontDrive.setPower(rightFrontPower*0.605);
+            leftBackDrive.setPower(leftBackPower*0.605);
+            rightBackDrive.setPower(rightBackPower*0.605);
             //The slides will always be raised to what the targetPos is set as
             Slides.raiseSlide(slideTargetPos);
+            //armServo will always go to the armTargetPos, which can be adjusted
             armServo.setPosition(armTargetPos);
+            //clawServo will always go to the clawTargetPos, either closed or open
             clawServo.setPosition(clawTargetPos);
-            //Arm state machine
-
+            //Section: Arm state machine
             //Checks if gamepad1.a is pressed and if the current state of the arm is zero(default)
             if(gamepad1.a && armState==0){
+                //Tells the drivers that the arm is going to be ready to intake
                 telemetry.addLine("Going to intake position");
                 //Sets the arm to the down position
                 armTargetPos = armDwnPlacePos;
@@ -183,14 +183,18 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
             //Checks if the arm is ready to grab and that gamepad1.x is pressed
             if(armState == 1 && gamepad1.x){
+                //Tells the driver that the arm is currently intaking
                 telemetry.addLine("Closing Claw");
-                //Closes the claw
+                //Raises the arm to a height where it can drop the cube
                 armTargetPos = armDwnPickPos;
+                //Closes the claw while the arm is traveling up
                 clawTargetPos = clawClosePos;
                 //Creates a timestamp of when the claw has closed
                 grabbedTime = System.currentTimeMillis();
+                //Moves on to the next state(transport)
                 armState = 2;
             }
+            //In case the first time we intake doesn't work
             //Checks if 0.5 seconds has elapsed after the claw has closed
             if(System.currentTimeMillis() - grabbedTime >= 500 && armState == 2){
                 telemetry.addLine("Arm going Up");
@@ -199,11 +203,30 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 //Registers the current state of the arm as 3(transporting)
                 armState = 3;
             }
-            if(gamepad1.x && armState == 3){
+            // Checks if the arm is currently in transport and if gamepad1.a is pressed again
+            if(armState == 3 && gamepad1.a){
+                //Sets the arm to the down position
+                armTargetPos = armDwnPlacePos;
+                //Closes the claw
                 clawTargetPos = clawOpenPos;
+                //Registers the current state of the arm as 1(ready to grab), resetting the claw
+                armState = 1;
+            }
+            //If gamepad1.x is pressed and the state of the arm is 3(transporting)
+            if(gamepad1.x && armState == 3){
+                //The arm goes down a little bit
                 armTargetPos = armDwnDropPos;
+                //The claw opens
+                clawTargetPos = clawOpenPos;
+                //The timestamp of when the claw opens is taken
                 openedTime = System.currentTimeMillis();
-                armState = 5;
+                //Advance to next state(which is the cube dropped pos)
+                armState = 10;
+            }
+            //If the time since the claw opened is over half a second, and the armState is 10, then the arm can go up
+            if(System.currentTimeMillis() - openedTime >= 500 && armState == 10) {
+                armTargetPos = armUpPos;
+                armState = 0;
             }
             //Checks to see if gamepad1.b is pressed and that the robot is currently transporting something
             if(gamepad1.b && (armState == 3)){
@@ -228,7 +251,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 openedTime2 = System.currentTimeMillis();
                 armState = 6;
             }
-            if(System.currentTimeMillis() - openedTime2 >= 2000 && armState == 6){
+            if(System.currentTimeMillis() - openedTime2 >= 1500 && armState == 6){
                 telemetry.addLine("Arm going up + reset");
                 //Moves the arm back up
                 armTargetPos = armUpPos;
@@ -240,8 +263,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             //These two functions are for the slide. They set the targetPos, which the slides are constantly going towards
             //IMPORTANT: if you want to adjust the height the slide goes to, remember the targetPos is in TICKS
             //You may run the DualMotorOpMode to find out the current position of the slide motors, as well as adjust it little by little
-            if(gamepad1.dpad_up){
+            if(gamepad1.dpad_up && !intaking){
                 slideTargetPos = 2425;
+            }
+            if(gamepad1.dpad_right){
+                slideTargetPos = 388;
             }
             if(gamepad1.dpad_down){
                 slideTargetPos = 0;
@@ -256,17 +282,24 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             }
             //If it has been more than 1 second since y was pressed, the dumpServo goes to the close position by default
             if(System.currentTimeMillis()-dump_time > 1500){
-                dumpServo.setPosition(0.355);
+                dumpServo.setPosition(0.365);
             }
 
             //This works in a similar manner to the dumpServo
             //The intakeMotor starts intaking, and the time since right_bumper was last pressed is noted in rb_time
             if(gamepad1.right_bumper){
-                intakeMotor.setPower(-0.5);
-                rb_time = System.currentTimeMillis();
+                intakeMotor.setPower(-0.4);
+                intaking = true;
+                sweep_time = System.currentTimeMillis();
+            }
+            if(gamepad1.left_bumper){
+                intakeMotor.setPower(0.4);
+                intaking = true;
+                sweep_time = System.currentTimeMillis();
             }
             //If it has been more than 0.8 seconds since right_bumper was pressed, the intakeMotor is set at 0 power
-            if(System.currentTimeMillis()- rb_time > 2000) {
+            if(System.currentTimeMillis()- sweep_time > 1000) {
+                intaking = false;
                 intakeMotor.setPower(0);
             }
             // Quite shrimple, just tells you the information listed in the caption
